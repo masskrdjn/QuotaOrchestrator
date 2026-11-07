@@ -1,0 +1,15 @@
+/rapport.md
+/tests-archive
+/__pycache__
+__pycache__/
+*.py[cod]
+
+# Local measurement and test-run tooling, its data and its results: not versioned.
+# test_install.py and test_reconcile.py stay tracked (installer tests; they read fixtures/).
+/benchmarks/
+compare_measurements.py
+extract_model_jsonl.ps1
+pricing.json
+run_observability_tests.py
+test_*.py
+!plugins/quota-orchestrator/claude/test_*.py

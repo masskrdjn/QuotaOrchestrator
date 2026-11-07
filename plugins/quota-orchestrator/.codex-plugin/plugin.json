@@ -1,0 +1,30 @@
+{
+  "name": "quota-orchestrator",
+  "version": "0.10.0",
+  "license": "MIT",
+  "description": "Selective multi-model routing with automatic global profile reconciliation and a PreToolUse delegation guard after hook trust.",
+  "author": {
+    "name": "masskrdjn",
+    "url": "https://github.com/masskrdjn"
+  },
+  "keywords": [
+    "codex",
+    "routing",
+    "subagents",
+    "cost-optimization"
+  ],
+  "skills": "./codex-skills/",
+  "hooks": "./hooks/codex-hooks.json",
+  "interface": {
+    "displayName": "QuotaOrchestrator",
+    "shortDescription": "Selective multi-model routing for Codex and Claude Code.",
+    "longDescription": "One plugin for Codex and Claude Code. Codex configures nine global routing profiles and checks delegations with trusted hooks. Claude Code supplies five specialized agents, the quota-orchestrator skill, and identity hooks. Custom settings are preserved; start a new task to load changes.",
+    "developerName": "masskrdjn",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Instructions",
+      "Write"
+    ],
+    "defaultPrompt": "Check whether the QuotaOrchestrator SessionStart hook has reconciled my global routing profiles, and help resolve any warnings."
+  }
+}

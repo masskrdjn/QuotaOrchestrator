@@ -1,0 +1,20 @@
+{
+  "name": "quota-orchestrator",
+  "interface": {
+    "displayName": "Codexskills"
+  },
+  "plugins": [
+    {
+      "name": "quota-orchestrator",
+      "source": {
+        "source": "local",
+        "path": "./plugins/quota-orchestrator"
+      },
+      "policy": {
+        "installation": "INSTALLED_BY_DEFAULT",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}
