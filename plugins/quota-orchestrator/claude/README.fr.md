@@ -197,7 +197,7 @@ est cohérent avec la règle qui leur interdit de router.
 Depuis le CLI :
 
 ```bash
-claude plugin marketplace add ./
+claude plugin marketplace add masskrdjn/QuotaOrchestrator
 ```
 
 ```bash
@@ -226,17 +226,24 @@ ensuite une nouvelle session, ou lancez `/reload-plugins`.
   `~/.claude/settings.json`.
 - Ne cumulez pas le plugin et `install.py` sur un même projet : les règles
   seraient chargées deux fois et les rôles du projet masqueraient ceux du plugin.
-- Les deux manifestes partagent la même version (**0.10.1**). Le catalogue ne la duplique pas.
+- Les deux manifestes partagent la même version (**0.10.2**). Le catalogue ne la duplique pas.
 - `.claude/settings.json` est une configuration partagée, volontairement suivie
   par Git. Gardez vos réglages personnels et secrets dans
   `.claude/settings.local.json`, qui est ignoré.
 
-Pour migrer une ancienne installation ClaudeSkills, vérifiez sa portée avec
-`claude plugin list`, désinstallez `claudeskills@claudeskills`, puis retirez son
-marketplace. Ajoutez le marketplace de ce projet, puis installez
-`quota-orchestrator@quota-orchestrator` avec la même portée (`--scope user`,
-`project` ou `local`). Le préfixe des composants Claude devient
-`quota-orchestrator:`.
+### Migrer depuis ClaudeSkills
+
+Vérifiez la portée avec la première commande. Remplacez `user` par `project` ou `local` dans les deux commandes si nécessaire.
+
+```sh
+claude plugin list
+claude plugin uninstall claudeskills@claudeskills --scope user
+claude plugin marketplace remove claudeskills
+claude plugin marketplace add masskrdjn/QuotaOrchestrator
+claude plugin install quota-orchestrator@quota-orchestrator --scope user
+```
+
+Ouvrez une nouvelle session ou lancez `/reload-plugins`. Remplacez le préfixe `claudeskills:` par `quota-orchestrator:` dans les références explicites aux agents et aux skills.
 
 La parité décrite ici concerne Claude Code, y compris ses sessions locales dans
 l’application de bureau. Le chat Claude.ai ne fournit pas le même environnement

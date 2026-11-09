@@ -9,6 +9,6 @@ marketplace; setup, migration and validation are described in
 [claude/README.fr.md](claude/README.fr.md) (français). Licensed under MIT.
 
 ```text
-claude plugin marketplace add ./
+claude plugin marketplace add masskrdjn/QuotaOrchestrator
 claude plugin install quota-orchestrator@quota-orchestrator
 ```

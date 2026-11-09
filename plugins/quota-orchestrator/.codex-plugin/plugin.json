@@ -1,6 +1,6 @@
 {
   "name": "quota-orchestrator",
-  "version": "0.10.1",
+  "version": "0.10.2",
   "license": "MIT",
   "description": "Selective multi-model routing with automatic global profile reconciliation and a PreToolUse delegation guard after hook trust.",
   "author": {

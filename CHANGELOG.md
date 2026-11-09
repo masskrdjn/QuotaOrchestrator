@@ -5,6 +5,11 @@ La version courante est définie dans le manifeste du plugin. Voir
 Les fixtures conservent les anciennes sources ; cet historique ne reconstitue
 pas les changements des versions précédentes.
 
+## 0.10.2 — 2026-11-09
+
+- Installation depuis GitHub et migration depuis CodexSkills et ClaudeSkills.
+- Nom d’affichage du catalogue Codex aligné sur QuotaOrchestrator.
+
 ## 0.10.1 — 2026-11-09 (préparée, commitée et poussée, non publiée)
 
 - Mise à jour de la route dynamique Fable vers Fable 5.2, avec le prérequis

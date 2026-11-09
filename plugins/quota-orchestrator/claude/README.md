@@ -186,7 +186,7 @@ do not route.
 From the CLI:
 
 ```bash
-claude plugin marketplace add ./
+claude plugin marketplace add masskrdjn/QuotaOrchestrator
 ```
 
 ```bash
@@ -212,16 +212,24 @@ Things to know:
   this repository's `.claude/settings.json` into `~/.claude/settings.json`.
 - Do not combine the plugin with `install.py` in the same project: the rules
   would load twice and the project's roles would shadow the plugin's.
-- Both host manifests share the same version (**0.10.1**). The marketplace does not duplicate it.
+- Both host manifests share the same version (**0.10.2**). The marketplace does not duplicate it.
 - `.claude/settings.json` contains shared configuration and is intentionally
   tracked by Git. Keep personal settings and secrets in the ignored
   `.claude/settings.local.json`.
 
-To migrate from the old ClaudeSkills install, check its scope with
-`claude plugin list`, uninstall `claudeskills@claudeskills`, and remove its
-marketplace. Add this project's marketplace and install
-`quota-orchestrator@quota-orchestrator` with the same scope (`--scope user`,
-`project`, or `local`). Claude component prefixes now use `quota-orchestrator:`.
+### Migrate from ClaudeSkills
+
+Check the existing scope with the first command. Replace `user` with `project` or `local` in both commands as needed.
+
+```sh
+claude plugin list
+claude plugin uninstall claudeskills@claudeskills --scope user
+claude plugin marketplace remove claudeskills
+claude plugin marketplace add masskrdjn/QuotaOrchestrator
+claude plugin install quota-orchestrator@quota-orchestrator --scope user
+```
+
+Start a new session or run `/reload-plugins`. Change the `claudeskills:` prefix to `quota-orchestrator:` in explicit agent and skill references.
 
 The behavior described here applies to Claude Code, including local desktop
 sessions. Claude.ai chat does not provide the same environment for hooks and

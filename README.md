@@ -11,9 +11,24 @@ This project contains the shared plugin and its local marketplaces. Start with t
 
 ## Quick start
 
-1. From this project directory, add the local marketplace: `codex plugin marketplace add .`.
+1. Add the marketplace with `codex plugin marketplace add masskrdjn/QuotaOrchestrator`, then install the plugin with `codex plugin add quota-orchestrator@quota-orchestrator`. From a local checkout, use `codex plugin marketplace add .` for the first command.
 2. When Codex asks, review and trust the bundled SessionStart hook to configure the nine standard global profiles. It requires Python 3.11 or newer available as `python`.
 3. Start a new Codex task to load the profiles. See [Usage](#usage) for how settings and instructions apply. For manual or project-scoped setup, see [Install without the plugin](#install-without-the-plugin).
+
+QuotaOrchestrator replaces CodexSkills and ClaudeSkills. For Claude Code, follow the [Claude Code migration guide](plugins/quota-orchestrator/claude/README.md#migrate-from-claudeskills).
+
+### Migrate from CodexSkills
+
+If you installed the CodexSkills plugin, remove it and install its successor.
+
+```sh
+codex plugin remove codexskills@codexskills
+codex plugin marketplace remove codexskills
+codex plugin marketplace add masskrdjn/QuotaOrchestrator
+codex plugin add quota-orchestrator@quota-orchestrator
+```
+
+Trust the new SessionStart hook and start a new task. The hook migrates recognized profiles with backups and reports customizations it preserves. If you used `install.py`, preview the migration from the new checkout with `python install.py --global --dry-run`. For a project installation, replace `--global` with the project path.
 
 ## Routing policy
 
@@ -321,7 +336,7 @@ with warnings; review them explicitly if they conflict with the Luna floor.
 ## Install as a plugin
 
 > [!IMPORTANT]
-> Current plugin version: **0.10.1**.
+> Current plugin version: **0.10.2**.
 >
 > An approved repository marketplace installs the plugin by default. Codex
 > still asks you to trust its bundled SessionStart hook once. That hook then

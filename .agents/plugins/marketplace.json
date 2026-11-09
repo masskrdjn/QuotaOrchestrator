@@ -1,7 +1,7 @@
 {
   "name": "quota-orchestrator",
   "interface": {
-    "displayName": "Codexskills"
+    "displayName": "QuotaOrchestrator"
   },
   "plugins": [
     {

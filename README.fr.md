@@ -11,9 +11,24 @@ Ce projet contient le plugin commun et ses marketplaces locales. Commencez par l
 
 ## Démarrage rapide
 
-1. Depuis ce dossier, ajoutez le marketplace local : `codex plugin marketplace add .`.
+1. Ajoutez le catalogue avec `codex plugin marketplace add masskrdjn/QuotaOrchestrator`, puis installez le plugin avec `codex plugin add quota-orchestrator@quota-orchestrator`. Depuis un clone local, utilisez `codex plugin marketplace add .` pour la première commande.
 2. Quand Codex le demande, examinez puis approuvez le hook SessionStart pour configurer les neuf profils globaux standard. Il requiert Python 3.11 ou ultérieur, disponible sous la commande `python`.
 3. Ouvrez une nouvelle tâche Codex pour charger les profils. Consultez [Utilisation](#utilisation) pour comprendre l’application des réglages et des consignes. Pour une installation manuelle ou limitée au projet, consultez [Installation sans plugin](#installation-sans-plugin).
+
+QuotaOrchestrator remplace CodexSkills et ClaudeSkills. Pour Claude Code, suivez le [guide de migration Claude Code](plugins/quota-orchestrator/claude/README.fr.md#migrer-depuis-claudeskills).
+
+### Migrer depuis CodexSkills
+
+Si vous aviez installé le plugin CodexSkills, retirez-le et installez son successeur.
+
+```sh
+codex plugin remove codexskills@codexskills
+codex plugin marketplace remove codexskills
+codex plugin marketplace add masskrdjn/QuotaOrchestrator
+codex plugin add quota-orchestrator@quota-orchestrator
+```
+
+Approuvez le nouveau hook SessionStart et ouvrez une nouvelle tâche. Le hook migre les profils connus avec sauvegarde et signale les personnalisations qu’il conserve. Si vous aviez utilisé `install.py`, prévisualisez la migration depuis le nouveau dépôt avec `python install.py --global --dry-run`. Pour une installation par projet, remplacez `--global` par le chemin du projet.
 
 ## Politique de routage
 
@@ -332,7 +347,7 @@ s'ils contredisent le plancher Luna.
 ## Installation comme plugin
 
 > [!IMPORTANT]
-> Version actuelle du plugin : **0.10.1**.
+> Version actuelle du plugin : **0.10.2**.
 >
 > Une marketplace de dépôt approuvée installe le plugin par défaut. Codex
 > demande encore une fois votre confiance pour son hook SessionStart. Ce hook
