@@ -332,7 +332,7 @@ s'ils contredisent le plancher Luna.
 ## Installation comme plugin
 
 > [!IMPORTANT]
-> Version actuelle du plugin : **0.10.0**.
+> Version actuelle du plugin : **0.10.1**.
 >
 > Une marketplace de dépôt approuvée installe le plugin par défaut. Codex
 > demande encore une fois votre confiance pour son hook SessionStart. Ce hook

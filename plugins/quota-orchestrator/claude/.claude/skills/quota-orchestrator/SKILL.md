@@ -147,66 +147,75 @@ Ne jamais monter d'un palier pour un problème d'environnement.
 
 ## Accès Fable
 
-Fable est le palier le plus cher : deux fois et demie Opus 5.5 en entrée comme
-en sortie, et
-des tours sensiblement plus longs. Il est donc doublement budgété — pour le
-coût et pour le délai.
+Fable 5.2 est l'escalade de raisonnement la plus coûteuse du plugin. Pour le
+modèle 5.2, les tarifs API standard par million de tokens sont : entrée 8 $,
+sortie 40 $, écriture de cache 5 min 10 $, écriture de cache 1 h 16 $, lecture
+de cache 0,20 $. Cela représente deux fois les tarifs Opus 5.5 pour l'entrée,
+la sortie et les écritures de cache, et le même tarif pour la lecture. Fable
+5.1 reste à ses tarifs historiques de 10/50 $ pour l'entrée et la sortie.
+
+En Claude Code first-party, l'alias `fable` sert Fable 5.2 à partir de la
+version 2.1.321, mais un réglage épinglé, une restriction d'organisation ou le
+mapping d'un fournisseur peut encore servir 5.1. L'identifiant du modèle 5.2
+est `claude-fable-5-2`. La version du CLI et l'alias demandé ne prouvent pas
+le modèle résolu : vérifier `resolvedModel` avant d'annoncer une consultation
+Fable 5.2 ou de lui appliquer son tarif.
+
+Le contexte maximal documenté est de 1 million de tokens, avec jusqu'à 128 000
+tokens en sortie. Fable 5.2 exige une conservation des données de 30 jours ;
+il n'est pas disponible sous ZDR (zero data retention) sans autorisation
+expresse d'Anthropic. Si l'organisation exige ZDR sans cette autorisation,
+traiter Fable 5.2 comme indisponible.
 
 **Présumer l'accès indisponible par défaut.** La détermination est déterministe
 et tient en deux commandes :
 
 ```
 claude auth status --json     # loggedIn, authMethod, apiProvider, subscriptionType
-claude --version              # Fable 5.1 exige 2.1.257 ou plus récent
+claude --version              # Fable 5.2 exige 2.1.321 ou plus récent
 ```
 
 Le verdict se lit dans cet ordre ; le premier constat qui tranche l'emporte :
 
 | Constat | Verdict |
 |---|---|
-| `availableModels` défini dans les settings | il fait foi, seul |
-| version du CLI < 2.1.257 | indisponible — ce CLI ne sait pas servir Fable |
+| `availableModels` défini dans les settings | il fait foi pour les modèles autorisés |
+| version du CLI < 2.1.321 | Fable 5.2 indisponible sur ce CLI ; une ancienne version peut encore servir 5.1 |
 | `loggedIn` faux | indéterminable — aucune session |
-| `apiProvider` ≠ `firstParty` (Bedrock, Vertex, Foundry) | indisponible chez ce fournisseur |
-| `authMethod` indiquant une clé API ou une facturation à l'usage | accès complet |
+| `apiProvider` ≠ `firstParty` (Bedrock, Vertex, Foundry) | indéterminable — vérifier l'identifiant et le mapping du fournisseur ; ne pas supposer que l'alias `fable` fonctionne |
+| `authMethod` indiquant une clé API Anthropic ou une facturation à l'usage | accès complet si le modèle n'est pas exclu par les réglages ou la politique de rétention |
 | `subscriptionType` = `free` | indisponible |
-| `subscriptionType` ∈ {`pro`, `team`, `max`, `enterprise`} | disponible, vraisemblablement débité en usage credits |
+| `subscriptionType` ∈ {`pro`, `max`} | disponible si les réglages ne l'excluent pas ; l'alias peut être actualisé en Fable 5.2 sur CLI 2.1.321+ |
+| `subscriptionType` ∈ {`team`, `enterprise`} | vérifier les réglages de l'organisation ; ils peuvent autoriser Fable 5.2 ou garder une version épinglée |
 | toute autre valeur de `subscriptionType` | indéterminable — demander |
 
 Cette liste de valeurs n'est pas garantie exhaustive : une valeur inconnue ne
-s'interprète pas, elle se demande.
+s'interprète pas, elle se demande. Pour les fournisseurs tiers, la disponibilité
+dépend du modèle et du mapping qu'ils exposent. Si le compte est soumis à ZDR,
+l'autorisation expresse d'Anthropic doit aussi être vérifiée.
 
 **Disponible ne vaut pas autorisé.** Sur abonnement, une requête Fable peut
 débiter des usage credits, c'est-à-dire de l'argent en plus de l'abonnement.
-Demander donc une fois, avant la première consultation Fable, en nommant le plan
-constaté et le surcoût (10/50 contre 4/20, deux fois et demie Opus 5.5). Consigner la
-réponse dans `.claude/settings.local.json` pour ne pas redemander.
+Demander donc une fois, avant la première consultation, en nommant le modèle
+résolu et ses tarifs standard : 8/40 $ par million pour Fable 5.2, ou 10/50 $
+pour Fable 5.1 si le modèle est encore épinglé. Le mode Fast est optionnel et
+double les tarifs d'entrée et de sortie de Fable 5.2 à 16/80 $ par million :
+il exige un consentement distinct. Consigner les autorisations dans
+`.claude/settings.local.json` pour ne pas les redemander.
+
+L'exporteur JSONL du projet calcule les tarifs standards et ne lit pas le niveau
+de service. Il ne chiffre donc pas correctement le mode Fast ; utiliser la
+facture comme coût réel, et ne pas présenter son estimation standard comme le
+coût d'une session Fast.
+
 En mode non interactif (`-p`) et via le SDK, Claude Code débite **sans**
 demander de consentement : ne jamais y escalader vers Fable sans une
 autorisation explicite obtenue au préalable.
 
 Sans accès, sur refus, ou faute de pouvoir trancher : consulter `architect` tel
-qu'il est défini, en Opus `xhigh`, et **annoncer explicitement qu'il s'agit d'un
-avis Opus 5.5, pas Fable**. Ne jamais présenter un repli comme une consultation
-Fable.
-
-**Preuve après coup.** Le hook `PostToolUse` du projet remonte au parent un
-rapport d'identité séparé du livrable de l'enfant : `resolvedModel` provient
-d'une métadonnée native ou du transcript associé à l'identifiant de l'agent et
-à la session. Il ne modifie pas la réponse native de l'outil. Distinguer modèle
-demandé, modèle résolu au lancement et modèle observé pendant l'exécution.
-Un lancement asynchrone ne prouve pas la fin du travail : exploiter les preuves
-au retour du résultat, pour ce même agent. Une diversité de modèles ou une
-divergence ne se masque pas en gardant seulement le dernier modèle.
-L'effort effectif manquant reste `null`, même si le profil configure un effort.
-
-Une métadonnée absente ou un hook non exécuté signifie « non attesté », sans
-invalider le livrable. Ne pas refaire le travail de l'enfant pour cette seule
-raison. Une divergence explicite appelle une vérification ciblée de l'identité
-et une évaluation de son impact. Ne pas annoncer une consultation ou une
-consommation Fable attestée sans preuve du modèle effectif ; si cette preuve
-est exigée, laisser ce seul critère non vérifié, sans relancer l'analyse métier.
-
+qu'il est défini, en Opus `xhigh`, et **annoncer explicitement qu'il s'agit
+d'un avis Opus 5.5, pas Fable**. Ne jamais présenter un repli comme une
+consultation Fable.
 ## Transmettre sans perdre les conditions
 
 Utiliser les rôles nommés. Un enfant part d'un contexte propre : le message doit

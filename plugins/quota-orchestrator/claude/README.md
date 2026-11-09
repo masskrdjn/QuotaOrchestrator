@@ -74,33 +74,48 @@ editing any role file: `builder` to `opus` for a hard task, and `architect` to
 `fable` on confirmed access, as a second call when the Opus 5.5 opinion leaves
 a decisive contradiction. An environment problem never raises a tier.
 
-## Claude Fable 5.1 access
+## Claude Fable 5.2 access
 
-Fable is not available to everyone, and it costs two and a half times what Opus 5.5 does. Depending
-on plan and seat, its usage may be billed to *usage credits*; an interactive
-session then asks for consent before billing, while a non-interactive run (`-p`)
-bills without asking.
+Fable 5.2 was released on November 9, 2026. Its standard API rates per million
+tokens are $8 input, $40 output, $10 for a 5-minute cache write, $16 for a
+1-hour cache write, and $0.20 for a cache read. Input, output, and cache writes
+cost twice the Opus 5.5 rates; cache reads cost the same. Fable 5.1 keeps its
+historical $10/$50 input/output rates.
 
-The configuration therefore **never** writes `fable` into a role file.
-`architect` ships with `opus` at `xhigh`: it works on every plan and never
-blocks a session. Escalation to Fable is dynamic and conditional.
+On first-party Claude Code, the `fable` alias selects Fable 5.2 with CLI
+version 2.1.321 or newer; its model ID is `claude-fable-5-2`. Pinned model
+settings, organization restrictions, and third-party provider mappings can
+still resolve to Fable 5.1 or make Fable unavailable. Check `resolvedModel`;
+an alias or CLI version alone does not prove which model ran.
 
-Access is **presumed unavailable**, and determining it is deterministic:
+Fable 5.2 supports a 1M-token context and up to 128K output tokens. It requires
+30-day data retention and is unavailable under zero data retention (ZDR) unless
+Anthropic expressly authorizes it. If the organization requires ZDR without
+that authorization, treat Fable 5.2 as unavailable.
+
+Fast mode is optional and doubles Fable 5.2 input/output rates to $16/$80 per
+million tokens. It requires separate explicit authorization. The transcript
+exporter applies standard rates and does not read the service tier, so its
+estimate does not price Fast mode correctly; use the bill for actual cost.
+
+Access is **presumed unavailable**. Check:
 
 ```bash
 claude auth status --json
+claude --version
 ```
 
-`apiProvider`, `authMethod`, and `subscriptionType` settle nearly every case,
-together with `claude --version` (Fable 5.1 requires 2.1.257 or newer) and
-`availableModels` when it is set. The full decision table lives in the skill. An
-unrecognized plan value is not interpreted — it is asked about.
+The full decision table lives in the skill. Third-party providers require their
+own Fable model ID or mapping; do not assume the `fable` alias is portable.
+Team and Enterprise settings may restrict the model or keep Fable 5.1 pinned.
 
 Available still does not mean authorized. On a subscription, Fable may bill to
-usage credits — money on top of the subscription. So the primary agent asks once
-before the first consultation, naming the detected plan and the premium, and
-records the answer in `.claude/settings.local.json` — gitignored, so it stays
-per-machine.
+*usage credits* — money on top of the subscription. Before the first
+consultation, the primary agent asks once, naming the effective model and its
+standard rates; Fast mode needs separate consent. It records the answer in
+`.claude/settings.local.json` — gitignored, so it stays per-machine.
+Non-interactive runs (`-p`) and SDK calls can bill without asking, so never
+escalate there without prior explicit authorization.
 
 Without access, or on refusal, `architect` answers on Opus 5.5 at `xhigh` and
 **says explicitly that this is not a Fable opinion**. Afterwards the effective
@@ -108,12 +123,9 @@ model is checked through runtime metadata when available (for example
 `resolvedModel`). Missing metadata does not discard the work or repeat its
 validation; it only prevents claiming an attested Fable consultation.
 
-Each role returns a `name`, `model_requested`, `effort_requested` header.
-The primary agent supplies these values in the prompt, including overrides.
-Select the role through `subagent_type`; keep its frontmatter `name` stable.
-The header is declarative, not proof of the executing model. See the
-[Anthropic subagent documentation](https://code.claude.com/docs/en/sub-agents).
-
+Sources consulted November 9, 2026: [Fable 5.2 model overview](https://platform.claude.com/docs/en/models/fable-5-2/overview),
+[Fable 5.2 migration guide](https://platform.claude.com/docs/en/models/fable-5-2/whats-new-fable-5-2),
+and [Claude Code model configuration](https://code.claude.com/docs/en/model-config).
 ## Observed execution identity
 
 The `.claude/hooks/agent_identity.py` hook adds a report to the parent's context
@@ -200,7 +212,7 @@ Things to know:
   this repository's `.claude/settings.json` into `~/.claude/settings.json`.
 - Do not combine the plugin with `install.py` in the same project: the rules
   would load twice and the project's roles would shadow the plugin's.
-- Both host manifests share the same version (**0.10.0**). The marketplace does not duplicate it.
+- Both host manifests share the same version (**0.10.1**). The marketplace does not duplicate it.
 - `.claude/settings.json` contains shared configuration and is intentionally
   tracked by Git. Keep personal settings and secrets in the ignored
   `.claude/settings.local.json`.
@@ -310,6 +322,10 @@ per-TTL breakdown and refuses to price a write whose TTL is unknown.
 Prices live in a single table at the top of the script; that is the only place
 to update when they change. `python plugins/quota-orchestrator/claude/test_extract_claude_jsonl.py` checks the
 script's contract against synthetic transcripts, with no model calls.
+
+Fable 5.2 uses the standard API rates in that table. The transcript exporter
+does not read the service tier, so it cannot price Fast mode's 2x input/output
+rates; use billing data for actual Fast-mode cost.
 
 Haiku 5.5 costs are calculated per deduplicated request before aggregation,
 so a role can mix prompts on either side of the 100,000-token threshold.

@@ -5,6 +5,16 @@ La version courante est définie dans le manifeste du plugin. Voir
 Les fixtures conservent les anciennes sources ; cet historique ne reconstitue
 pas les changements des versions précédentes.
 
+## 0.10.1 — 2026-11-09 (préparée, commitée et poussée, non publiée)
+
+- Mise à jour de la route dynamique Fable vers Fable 5.2, avec le prérequis
+  Claude Code 2.1.321, les restrictions de disponibilité et de conservation
+  des données.
+- Tarifs standards Fable 5.2 documentés et ajoutés à l'estimateur ; les tarifs
+  historiques de Fable 5.1 restent en place.
+- Mode Fast et limites de l'estimation JSONL explicités ; contrôles de cohérence
+  adaptés à la version et aux tarifs du modèle.
+
 ## 0.10.0 — 2026-11-06 (préparée localement, non publiée)
 
 - Les deux catalogues distribuent le même paquet pour Codex et Claude Code.

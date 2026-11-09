@@ -77,34 +77,54 @@ aucun fichier de rôle : `builder` vers `opus` pour une tâche difficile,
 Opus 5.5 laisse une contradiction décisive. Un problème d'environnement ne fait
 jamais monter d'un palier.
 
-## Accès à Fable 5.1
+## Accès à Fable 5.2
 
-Fable n'est pas accessible à tout le monde, et il coûte deux fois et demie Opus 5.5. Selon
-le plan et le siège, son usage peut être débité en *usage credits* ; une session
-interactive demande alors un consentement avant de facturer, mais un lancement
-non interactif (`-p`) facture sans demander.
+Fable 5.2 est sorti le 9 novembre 2026. Ses tarifs API standards par million
+de tokens sont de 8 $ en entrée, 40 $ en sortie, 10 $ pour une écriture de
+cache de 5 minutes, 16 $ pour une écriture d'une heure et 0,20 $ en lecture de
+cache. L'entrée, la sortie et les écritures de cache coûtent deux fois les
+tarifs d'Opus 5.5 ; la lecture de cache coûte le même prix. Fable 5.1 conserve
+ses tarifs historiques de 10/50 $ en entrée/sortie.
 
-La configuration ne met donc **jamais** `fable` dans un fichier de rôle.
-`architect` embarque `opus` en `xhigh` : il fonctionne sur tous les plans et ne
-bloque jamais une session. L'escalade vers Fable est dynamique et conditionnée.
+Sur Claude Code first-party, l'alias `fable` sélectionne Fable 5.2 avec le CLI
+2.1.321 ou plus récent ; son identifiant est `claude-fable-5-2`. Des réglages
+épinglés, des restrictions d'organisation ou le mapping d'un fournisseur tiers
+peuvent encore servir Fable 5.1 ou rendre Fable inaccessible. Vérifiez
+`resolvedModel` : l'alias et la version du CLI ne prouvent pas le modèle
+effectivement exécuté.
 
-L'accès est **présumé indisponible**, et sa détermination est déterministe :
+Fable 5.2 accepte un contexte de 1 million de tokens et jusqu'à 128 000 tokens
+en sortie. Il exige une conservation des données de 30 jours et n'est pas
+disponible sous ZDR (zero data retention) sans autorisation expresse
+d'Anthropic. Si l'organisation impose ZDR sans cette autorisation, considérez
+Fable 5.2 indisponible.
+
+Le mode Fast est optionnel et double les tarifs d'entrée/sortie de Fable 5.2 à
+16/80 $ par million de tokens. Il demande un consentement explicite distinct.
+L'exporteur des transcripts applique les tarifs standards et ne lit pas le
+niveau de service ; son estimation ne chiffre donc pas correctement Fast.
+Utilisez la facture pour connaître le coût réel.
+
+L'accès est **présumé indisponible**. Vérifiez :
 
 ```bash
 claude auth status --json
+claude --version
 ```
 
-`apiProvider`, `authMethod` et `subscriptionType` suffisent à trancher dans la
-quasi-totalité des cas, complétés par `claude --version` (Fable 5.1 exige
-2.1.257 ou plus récent) et par `availableModels` s'il est défini. La table de
-décision complète est dans le skill. Une valeur de plan inconnue ne s'interprète
-pas : elle se demande.
+La table de décision complète figure dans le skill. Les fournisseurs tiers
+exigent leur propre identifiant ou mapping de modèle Fable ; ne supposez pas que
+l'alias `fable` fonctionne partout. Les réglages Team et Enterprise peuvent
+restreindre le modèle ou garder Fable 5.1 épinglé.
 
-Disponible ne vaut pas autorisé pour autant. Sur abonnement, Fable peut être
-débité en usage credits — de l'argent en plus de l'abonnement. L'agent principal
-demande donc une fois avant la première consultation, en nommant le plan
-constaté et le surcoût, et consigne la réponse dans
-`.claude/settings.local.json` — gitignoré, donc propre à chaque poste.
+Disponible ne vaut pas autorisé. Sur abonnement, Fable peut débiter des *usage
+credits*, c'est-à-dire de l'argent en plus de l'abonnement. Avant la première
+consultation, l'agent principal demande une fois en nommant le modèle effectif
+et ses tarifs standards ; le mode Fast exige un consentement distinct. La
+réponse est consignée dans `.claude/settings.local.json`, ignoré par Git et
+propre à chaque poste. Les lancements non interactifs (`-p`) et les appels SDK
+peuvent facturer sans demander : ne jamais y escalader sans autorisation
+explicite préalable.
 
 Sans accès ou sur refus, `architect` répond en Opus 5.5 `xhigh` et **annonce
 explicitement qu'il ne s'agit pas d'un avis Fable**. Après coup, le modèle
@@ -112,12 +132,9 @@ effectif est vérifié dans les métadonnées runtime lorsqu'elles sont disponib
 (par exemple `resolvedModel`). Leur absence ne fait pas rejeter le travail ni
 répéter ses validations ; elle interdit seulement de présenter Fable comme attesté.
 
-Chaque rôle renvoie un en-tête `name`, `model_requested`, `effort_requested`.
-La racine transmet ces valeurs dans le prompt, overrides compris. Le rôle est
-sélectionné via `subagent_type` ; son `name` de frontmatter reste stable.
-L'en-tête est déclaratif, sans attester le modèle effectif. Voir la
-[documentation Anthropic des sous-agents](https://code.claude.com/docs/en/sub-agents).
-
+Sources consultées le 9 novembre 2026 : [présentation de Fable 5.2](https://platform.claude.com/docs/en/models/fable-5-2/overview),
+[guide de migration Fable 5.2](https://platform.claude.com/docs/en/models/fable-5-2/whats-new-fable-5-2)
+et [configuration des modèles Claude Code](https://code.claude.com/docs/en/model-config).
 ## Identité réellement observée
 
 Le hook `.claude/hooks/agent_identity.py` ajoute au contexte du parent un rapport
@@ -209,7 +226,7 @@ ensuite une nouvelle session, ou lancez `/reload-plugins`.
   `~/.claude/settings.json`.
 - Ne cumulez pas le plugin et `install.py` sur un même projet : les règles
   seraient chargées deux fois et les rôles du projet masqueraient ceux du plugin.
-- Les deux manifestes partagent la même version (**0.10.0**). Le catalogue ne la duplique pas.
+- Les deux manifestes partagent la même version (**0.10.1**). Le catalogue ne la duplique pas.
 - `.claude/settings.json` est une configuration partagée, volontairement suivie
   par Git. Gardez vos réglages personnels et secrets dans
   `.claude/settings.local.json`, qui est ignoré.
@@ -324,6 +341,11 @@ une écriture dont le TTL est inconnu.
 Les tarifs vivent dans une seule table en tête du script ; c'est le seul endroit
 à mettre à jour quand ils changent. `python plugins/quota-orchestrator/claude/test_extract_claude_jsonl.py` vérifie
 le contrat du script sur des transcripts synthétiques, sans aucun appel de modèle.
+
+Fable 5.2 utilise les tarifs API standards de cette table. L'exporteur des
+transcripts ne lit pas le niveau de service et ne chiffre donc pas Fast, qui
+double l'entrée/sortie ; utilisez les données de facturation pour obtenir le
+coût réel d'une session Fast.
 
 Les coûts Haiku 5.5 sont calculés par requête dédupliquée avant agrégation : un
 rôle peut mélanger des prompts de part et d'autre du seuil de 100 000 tokens.

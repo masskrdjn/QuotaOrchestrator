@@ -66,7 +66,10 @@ $ErrorActionPreference = 'Stop'
 # L'ecriture de cache se tarife selon sa duree de vie : 1,25x l'entree pour un
 # cache de 5 minutes, 2x pour un cache d'une heure. Claude Code utilise les deux
 # dans une meme session ; confondre les deux sous-compte la facture.
+# Fable 5.2 : tarifs API standards. Le transcript n'est pas ventilé par niveau
+# de service ; le mode Fast (entrée/sortie à 2x) n'est donc pas estimé ici.
 $script:DefaultPrices = @{
+    'claude-fable-5-2' = @{ Input =  8.0; Output = 40.0; CacheWrite5m = 10.00; CacheWrite1h = 16.0; CacheRead = 0.20 }
     'claude-fable-5-1' = @{ Input = 10.0; Output = 50.0; CacheWrite5m = 12.50; CacheWrite1h = 20.0; CacheRead = 0.25 }
     'claude-fable-5'   = @{ Input = 10.0; Output = 50.0; CacheWrite5m = 12.50; CacheWrite1h = 20.0; CacheRead = 0.25 }
     'claude-opus-5-5'  = @{ Input =  4.0; Output = 20.0; CacheWrite5m =  5.00; CacheWrite1h =  8.0; CacheRead = 0.20 }

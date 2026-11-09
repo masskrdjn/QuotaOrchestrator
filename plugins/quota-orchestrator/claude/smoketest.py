@@ -194,7 +194,7 @@ def t_procedure_fable_deterministe():
     """La detection du plan doit rester mecanique, pas une question ouverte."""
     body = read(".claude/skills/quota-orchestrator/SKILL.md")
     for needed in ("claude auth status", "subscriptionType", "apiProvider",
-                   "2.1.257", "availableModels"):
+                   "2.1.321", "claude-fable-5-2", "availableModels"):
         assert needed in body, \
             "la procedure d'acces Fable ne s'appuie pas sur '%s'" % needed
     # Disponible ne vaut pas autorise : le consentement reste explicite.
@@ -255,12 +255,17 @@ def t_tarifs_coherents():
     expected = {"claude-opus-5-5": (4.0, 20.0), "claude-opus-5": (5.0, 25.0),
                 "claude-sonnet-5-5": (2.0, 10.0), "claude-sonnet-5": (2.0, 10.0),
                 "claude-haiku-5-5": (0.10, 0.50), "claude-haiku-4-5": (1.0, 5.0),
-                "claude-fable-5-1": (10.0, 50.0)}
+                "claude-fable-5-1": (10.0, 50.0),
+                "claude-fable-5-2": (8.0, 40.0)}
     for model, price in expected.items():
         got = table.get(model)
         assert got and got[:2] == price, \
             "%s : script dit %s, attendu %s" % (model, got, price)
 
+    assert table["claude-fable-5-1"] == (10.0, 50.0, 12.5, 20.0, 0.25), \
+        "tarif historique Fable 5.1 modifie"
+    assert table["claude-fable-5-2"] == (8.0, 40.0, 10.0, 16.0, 0.20), \
+        "tarifs Fable 5.2 absents ou incorrects"
     assert table["claude-sonnet-5-5"][4] == 0.10, "tarif de lecture Sonnet 5.5 obsolete"
     assert table["claude-haiku-5-5"] == (0.10, 0.50, 0.125, 0.20, 0.01)
     haiku = re.search(r"'claude-haiku-5-5'\s*=\s*@\{(.*?)\n    \}", ps, re.S)
@@ -394,17 +399,17 @@ def t_version_claude_code():
     m = re.search(r"(\d+)\.(\d+)\.(\d+)", proc.stdout)
     assert m, "version illisible : %s" % proc.stdout
     version = tuple(int(x) for x in m.groups())
-    # Le support de Fable 5.1 demande 2.1.257 ou plus recent, Opus 5.5 2.1.280, Sonnet 5.5 2.1.284.
-    if version < (2, 1, 257):
-        return ("v%d.%d.%d - sous le prerequis Fable 5.1 (2.1.257) : "
-                "l'escalade architect->fable ne peut pas aboutir ici" % version)
+    # Opus 5.5 demande 2.1.280, Sonnet 5.5 2.1.284, Fable 5.2 2.1.321.
     if version < (2, 1, 280):
         return ("v%d.%d.%d - sous le prerequis Opus 5.5 (2.1.280) : "
                 "'opus' ne sert pas Opus 5.5 ici" % version)
     if version < (2, 1, 284):
         return ("v%d.%d.%d - sous le prerequis Sonnet 5.5 (2.1.284) : "
                 "'sonnet' ne sert pas Sonnet 5.5 ici" % version)
-    return "v%d.%d.%d - Fable 5.1, Opus 5.5 et Sonnet 5.5 supportes" % version
+    if version < (2, 1, 321):
+        return ("v%d.%d.%d - sous le prerequis Fable 5.2 (2.1.321) : "
+                "l'escalade architect->fable ne garantit pas Fable 5.2 ici" % version)
+    return "v%d.%d.%d - Fable 5.2, Opus 5.5 et Sonnet 5.5 supportes" % version
 
 
 if __name__ == "__main__":
