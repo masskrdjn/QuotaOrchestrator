@@ -163,7 +163,7 @@ est déclarée comme telle : ne pas présenter son rapport comme l'ayant fondée
 ## Comparer les modèles indépendamment des rôles
 
 Les rôles définissent les missions, restrictions et livrables. Ils ne classent
-ni les modèles ni les efforts. Les six modèles suivants sont à comparer pour
+ni les modèles ni les efforts. Les modèles suivants sont à comparer pour
 la tâche; aucune hiérarchie universelle de qualité ou de tokens n'est établie ici.
 
 | Modèle | Candidature dans le projet | Limite à conserver |
@@ -171,9 +171,10 @@ la tâche; aucune hiérarchie universelle de qualité ou de tokens n'est établi
 | GPT-6 Luna | Travail circonscrit; `high`, `xhigh` et `max` sont candidats, y compris pour une implémentation ou un cadrage bien définis | Plancher utilisateur `high`, dans les rôles comme dans le générique. Environ 20× moins chère que Sol 6.1 par token : voir la règle de coût. |
 | GPT-6 Sol | Candidat ordinaire pour les missions techniques et les interactions complexes, indépendamment du rôle | Même exigence de qualité et même protocole comparatif que Sol 6.1, sans preuve liée à son ancienneté ; mêmes tarifs que 6.1 sauf le cache, 2× plus cher. |
 | GPT-5.6 Sol | Candidat ordinaire pour le raisonnement, le cadrage et les autres missions qu'il peut remplir | Même exigence que les autres Sol; ni exception de compatibilité ni inférieur présumé ; tarif 2× celui de 6.1 (promotionnel, voir règle de coût). |
-| GPT-6.1 Sol | Candidat transversal pour l'implémentation, la recherche et les décisions | Sa nouveauté ne prouve ni moins de tokens ni un remplacement optimal des autres Sol. |
+| GPT-6.1 Sol | Ancien profil de secours et candidat à la comparaison | Mêmes tarifs API standard que Sol 6.2. |
+| GPT-6.2 Sol | Profil de secours pour l'implémentation, la recherche et le cadrage | Comparer le coût complet sur des tâches équivalentes. |
 | GPT-6.1 Terra | Vision via `visual_operator` et rédaction claire via `writer` | `medium` par défaut ; `high`/`xhigh` selon difficulté établie. Tarif 2× inférieur à Sol 6.1, sans économie projet démontrée. |
-| GPT-6 Astra | Consultation `architect` lorsque la capacité supplémentaire répond à une difficulté identifiée | Quota et restrictions architect; pas d'exploration, commande, écriture ni délégation. 5× le tarif de 6.1 (10× en cache), 100× Luna. |
+| GPT-6.2 Astra | Consultation `architect` lorsque la capacité supplémentaire répond à une difficulté identifiée | Quota et restrictions architect; pas d'exploration, commande, écriture ni délégation. 4× le tarif standard de Sol 6.2 par type de token. |
 
 Vérifier les modèles et efforts réellement disponibles dans le runtime.
 La disponibilité API ne prouve pas leur disponibilité dans Codex. Les noms
@@ -199,7 +200,7 @@ plus d'effort. Cette qualification n'autorise pas l'exploration avant le routage
    une hypothèse de politique, pas une économie démontrée ni un optimum.
 
 La grille ci-dessous propose des candidats à évaluer; chaque Sol désigne
-GPT-6 Sol, GPT-5.6 Sol et GPT-6.1 Sol, soumis aux mêmes conditions d'admission.
+GPT-6 Sol, GPT-5.6 Sol, GPT-6.1 Sol et GPT-6.2 Sol, soumis aux mêmes conditions d'admission.
 Les efforts proposés restent conditionnels à leur disponibilité effective.
 
 | Difficulté et preuves disponibles | Couples candidats | Validation et signal de requalification |
@@ -216,11 +217,11 @@ d'avoir épuisé tous les efforts inférieurs pour évaluer `max` : justifier sa
 candidature par la tâche puis mesurer la qualité et le coût complet.
 Les secours Luna sont `high`, y compris runner et générique; ce choix provisoire
 respecte le plancher utilisateur, sans établir que `high` est optimal.
-Les modèles de secours existants restent en place; ni leurs valeurs TOML ni
-leur exécution ne prouvent une économie. Les variantes scout_complex et
+Le coût des profils de secours se mesure sur des exécutions comparables.
+Les variantes scout_complex et
 researcher_complex sont des facilités de runtime, pas un classement obligatoire :
-la variante standard (Luna) est le défaut ; la complex (Sol 6.1 xhigh, 20× par
-token et un raisonnement plus long) exige une capacité établie au cadrage ou une
+la variante standard (Luna) est le défaut ; la complex (Sol 6.2 xhigh, 20× le
+tarif de sortie de Luna) exige une capacité établie au cadrage ou une
 limite constatée de la standard.
 
 Au lancement, annoncer rôle, modèle exact, effort, faits justifiant le choix,
@@ -242,7 +243,8 @@ le travail. Une difficulté conceptuelle décisive se remonte immédiatement.
 ### Tarifs API et règle de coût
 
 Tarifs standard (entrée ≤ 272 K tokens), dollars par million de tokens, relevés
-le 2026-10-03 sur https://developers.openai.com/api/docs/pricing (la page n'a pas
+le 2026-10-03 pour les versions antérieures sur
+https://developers.openai.com/api/docs/pricing (la page n'a pas
 de version : rafraîchir avant toute comparaison datée autrement).
 
 | Modèle | Entrée | Cachée | Écriture cache | Sortie (raisonnement inclus) | Sortie vs Luna |
@@ -252,6 +254,17 @@ de version : rafraîchir avant toute comparaison datée autrement).
 | GPT-6.1 Sol | 2,00 | 0,10 | 2,50 | 10,00 | 20× |
 | GPT-5.6 Sol | 4,00 | 0,40 | 5,00 | 20,00 | 40× |
 | GPT-6 Astra | 10,00 | 1,00 | 12,50 | 50,00 | 100× |
+| GPT-6.2 Sol | 2,00 | 0,10 | 2,50 | 10,00 | 20× |
+| GPT-6.2 Astra | 8,00 | 0,40 | 10,00 | 40,00 | 80× |
+
+Tarifs 6.2 relevés le 17 novembre 2026. Les deux modèles acceptent le texte et
+les images en entrée et produisent du texte. Ils prennent en charge jusqu’à
+1,05 M de tokens de contexte et 128 k en sortie. Les efforts API vont de
+`low` à `max`. OpenAI annonce un déploiement progressif dans Codex. Vérifier
+les modèles et les efforts disponibles dans la session.
+[Sol 6.2](https://developers.openai.com/api/docs/models/gpt-6.2-sol),
+[Astra 6.2](https://developers.openai.com/api/docs/models/gpt-6.2-astra),
+[annonce OpenAI](https://openai.com/index/introducing-gpt-6-2-astra-sol/).
 
 Le tarif de GPT-5.6 Sol est promotionnel au moins jusqu'au 21 novembre 2026.
 Au-delà de 272 K tokens d'entrée, une requête paie entrée, cache et écritures ×2
@@ -534,7 +547,7 @@ métadonnées effectives lorsqu'elles sont accessibles (rôle, modèle, effort),
 sinon indiquer « exécution non vérifiée ». La provenance des instructions
 héritées ne prouve pas le modèle exécutant. Après chaque réponse, vérifier dans
 la trace persistante le rôle architect, le modèle et l'effort effectifs ; sans
-preuve effective architect + gpt-6-astra + effort annoncé, écarter le résultat
+preuve effective architect + gpt-6.2-astra + effort annoncé, écarter le résultat
 comme non conforme et ne jamais annoncer une consultation ou une consommation
 Astra attestée.
 

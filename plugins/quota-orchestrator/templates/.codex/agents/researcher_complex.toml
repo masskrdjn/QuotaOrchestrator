@@ -1,7 +1,7 @@
 name = "researcher_complex"
 description = "Recherche complexe en lecture seule : synthèse de sources contradictoires pour une décision technique importante. Variante coûteuse : seulement si une capacité Sol est établie au cadrage ou si `researcher` a atteint une limite constatée."
 
-model = "gpt-6.1-sol"
+model = "gpt-6.2-sol"
 model_reasoning_effort = "xhigh"
 sandbox_mode = "read-only"
 

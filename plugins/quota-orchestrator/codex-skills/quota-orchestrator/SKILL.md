@@ -117,7 +117,7 @@ subject to the parent runtime, which takes precedence over child sandbox default
 ## Compare models independently of roles
 
 Roles define missions, restrictions, and deliverables. They do not rank models
-or effort levels. Compare all six models for the task; this project establishes
+or effort levels. Compare the models below for the task; this project establishes
 no universal ranking of quality or token consumption.
 
 | Model | Project candidacy | Boundary to preserve |
@@ -125,9 +125,10 @@ no universal ranking of quality or token consumption.
 | GPT-6 Luna | Bounded work; `high`, `xhigh`, and `max` are candidates, including well-defined implementation or framing | User floor `high` in named roles and the generic agent. About 20x cheaper than Sol 6.1 per token: see the cost rule. |
 | GPT-6 Sol | Ordinary candidate for technical missions and complex interactions, independently of role | Same quality gate and comparison protocol as Sol 6.1, no proof tied to its age; same rates as 6.1 except cached input, 2x more expensive. |
 | GPT-5.6 Sol | Ordinary candidate for reasoning, framing, and other missions it can fulfill | Same requirements as other Sol models; no compatibility-only exception or presumed inferiority; rate is 2x that of 6.1 (promotional, see the cost rule). |
-| GPT-6.1 Sol | Candidate across implementation, research, and decisions | Being newer establishes neither fewer tokens nor an optimal replacement for other Sol models. |
+| GPT-6.1 Sol | Previous fallback and comparison candidate | Same standard API rates as Sol 6.2. |
+| GPT-6.2 Sol | Fallback for implementation, research, and planning | Compare total cost on equivalent tasks. |
 | GPT-6.1 Terra | Vision through `visual_operator` and clear writing through `writer` | `medium` fallback; `high`/`xhigh` for established difficulty. Half the Sol 6.1 token price; no demonstrated project savings. |
-| GPT-6 Astra | An `architect` consultation when extra capacity addresses an identified difficulty | Preserve quota and architect restrictions: no exploration, commands, writing, or delegation. 5x the 6.1 rate (10x cached), 100x Luna. |
+| GPT-6.2 Astra | An `architect` consultation when extra capacity addresses an identified difficulty | Preserve quota and architect restrictions: no exploration, commands, writing, or delegation. 4x the Sol 6.2 standard API rate for each token type. |
 
 Verify the models and efforts actually available in the runtime. API support
 does not establish Codex availability. Effort names are not equivalent across
@@ -151,8 +152,8 @@ exploration before the routing decision.
    remains a policy hypothesis, not demonstrated savings or an optimum.
 
 The grid proposes candidates to evaluate. Each Sol means GPT-6 Sol, GPT-5.6
-Sol, and GPT-6.1 Sol under the same admission criteria. Proposed efforts remain
-conditional on their actual availability.
+Sol, GPT-6.1 Sol, and GPT-6.2 Sol under the same admission criteria.
+Proposed efforts depend on session availability.
 
 | Task difficulty and evidence | Candidate combinations | Validation and reclassification trigger |
 |---|---|---|
@@ -167,11 +168,10 @@ a researcher role nor low pricing selects `max` automatically. Evaluating `max`
 does not require exhausting all lower efforts first: justify candidacy from
 the task, then measure quality and whole-job cost. Luna fallbacks are `high`,
 including runner and generic; this provisional policy respects the user floor
-without establishing that `high` is optimal. Existing fallback models stay in
-place; TOML values and successful execution do not prove savings. The optional
+without establishing that `high` is optimal. Measure fallback costs on comparable runs. The optional
 scout_complex and researcher_complex profiles are runtime conveniences, not a
 mandatory ranking: the standard variant (Luna) is the default; the complex one
-(Sol 6.1 xhigh, 20x per token and longer reasoning) requires capacity
+(Sol 6.2 xhigh, 20x the Luna output rate) requires capacity
 established at framing or an observed limit of the standard variant.
 
 At launch, record role, exact model, effort, supporting facts, hypotheses,
@@ -193,7 +193,8 @@ decisive conceptual difficulty immediately.
 ### API prices and cost rule
 
 Standard rates (input <= 272K tokens), dollars per million tokens, retrieved
-2026-10-03 from https://developers.openai.com/api/docs/pricing (the page carries
+2026-10-03 for earlier models, from
+https://developers.openai.com/api/docs/pricing (the page carries
 no version: refresh before comparing runs dated otherwise).
 
 | Model | Input | Cached input | Cache write | Output (reasoning included) | Output vs Luna |
@@ -203,6 +204,16 @@ no version: refresh before comparing runs dated otherwise).
 | GPT-6.1 Sol | 2.00 | 0.10 | 2.50 | 10.00 | 20x |
 | GPT-5.6 Sol | 4.00 | 0.40 | 5.00 | 20.00 | 40x |
 | GPT-6 Astra | 10.00 | 1.00 | 12.50 | 50.00 | 100x |
+| GPT-6.2 Sol | 2.00 | 0.10 | 2.50 | 10.00 | 20x |
+| GPT-6.2 Astra | 8.00 | 0.40 | 10.00 | 40.00 | 80x |
+
+6.2 rates checked on November 17, 2026. Both models accept text and image input,
+produce text output, and support up to 1.05M tokens of context and 128k output
+tokens. API reasoning efforts range from `low` to `max`. OpenAI announced a
+gradual Codex rollout. Check which models and efforts your session can use.
+[Sol 6.2](https://developers.openai.com/api/docs/models/gpt-6.2-sol),
+[Astra 6.2](https://developers.openai.com/api/docs/models/gpt-6.2-astra),
+[OpenAI announcement](https://openai.com/index/introducing-gpt-6-2-astra-sol/).
 
 GPT-5.6 Sol's rate is promotional at least through November 21, 2026. Above 272K
 input tokens a request pays input, cached input, and cache writes at 2x and
@@ -436,7 +447,7 @@ announced model, configuration, and attested execution: use effective metadata
 when accessible (role, model, effort), otherwise state "execution not verified".
 Inherited instruction provenance is not proof of the executing model. After the
 response, verify in the trace the architect role, model, announced effort, and
-absence of tool calls; without effective architect + gpt-6-astra + announced
+absence of tool calls; without effective architect + gpt-6.2-astra + announced
 effort evidence, discard the result as noncompliant and do not claim an attested
 Astra consultation or consumption.
 

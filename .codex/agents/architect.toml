@@ -1,7 +1,7 @@
 name = "architect"
 description = "Consultant de décision. Tranche un arbitrage conceptuel ou d'architecture à partir d'un contexte déjà rassemblé. N'explore pas, n'implémente pas, n'exécute rien. Coûteux : ne l'appeler que si un palier inférieur ferait sensiblement moins bien."
 
-model = "gpt-6-astra"
+model = "gpt-6.2-astra"
 model_reasoning_effort = "low"
 sandbox_mode = "read-only"
 

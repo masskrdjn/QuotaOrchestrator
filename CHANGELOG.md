@@ -5,6 +5,15 @@ La version courante est définie dans le manifeste du plugin. Voir
 Les fixtures conservent les anciennes sources ; cet historique ne reconstitue
 pas les changements des versions précédentes.
 
+## 0.11.0 — 2026-11-17 (préparée localement)
+
+- Codex utilise désormais GPT-6.2 Sol pour `builder`, `strategist`,
+  `researcher_complex` et `scout_complex`, et GPT-6.2 Astra pour `architect`.
+  Les efforts restent respectivement `high`, `medium`, `xhigh`, `xhigh` et `low`.
+- Les installateurs migrent les fichiers d’origine de la 0.10.2 avec sauvegarde
+  et conservent les personnalisations. L’accès aux modèles suit le déploiement
+  Codex annoncé par OpenAI. Les tarifs API sont documentés dans les deux README.
+
 ## 0.10.2 — 2026-11-09
 
 - Installation depuis GitHub et migration depuis CodexSkills et ClaudeSkills.

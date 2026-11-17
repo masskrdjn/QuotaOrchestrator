@@ -1,7 +1,7 @@
 name = "scout_complex"
 description = "Enquête causale ou revue bornée complexe en lecture seule entre plusieurs composants. Variante coûteuse (≈ 20× Luna par token) : seulement si une capacité Sol est établie au cadrage ou si `scout` a atteint une limite constatée."
 
-model = "gpt-6.1-sol"
+model = "gpt-6.2-sol"
 model_reasoning_effort = "xhigh"
 sandbox_mode = "read-only"
 

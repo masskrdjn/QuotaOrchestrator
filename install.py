@@ -97,6 +97,16 @@ RELEASE_0_8_5_SHA256 = {
     ".agents/skills/quota-orchestrator/SKILL.md": "743b10942503d4729ccbc2d819ade01973c8a53450958b68c1b5cb66badb64b2",
 }
 RELEASE_0_8_5_AGENTS_BLOCK_SHA256 = "c8af99d30964eaafe93808eb17a87fa86cb72ddc453fee23edfdf56a85012e56"
+# Exact 0.10.2 profiles and skill, before GPT-6.2 routing.
+RELEASE_0_10_2_SHA256 = {
+    ".codex/agents/architect.toml": "26d902b1539fdcad6cee13bfaecdd0a97179f983408b4e983e9d4d3f06c3d061",
+    ".codex/agents/builder.toml": "901566076d62644e706a3d80bb1c789128ee46605e31dcae25b2132e68f129e8",
+    ".codex/agents/researcher_complex.toml": "e704d761f609c5be0452517c5474138e2be6ca31ab7cafd089d02d623ff16ff3",
+    ".codex/agents/scout_complex.toml": "23a6072f77edefed6ddb207f97de3e84f2964af3591460a0d58cf2a690e628fa",
+    ".codex/agents/strategist.toml": "34f50d8c6757a76c56c51a089d2599904ac3836ce98d0dda9b635661b7b2a4d3",
+    ".agents/skills/quota-orchestrator/SKILL.md": "b387226ddb9de69fc2944a7a643044125d4481a9cca67dc1c94dda8422f7cb91",
+}
+
 # The wait bounds are one atomic group: Codex refuses a configuration unless min <= default <= max,
 # so they are added only when the user has none of the three and defines multi_agent_v2 nowhere else.
 WAIT_SECTION = ("features", "multi_agent_v2")
@@ -142,6 +152,7 @@ def _is_legacy(path: str, content: bytes) -> bool:
         RELEASE_0_8_2_SHA256.get(path),
         RELEASE_0_8_3_SHA256.get(path),
         RELEASE_0_8_5_SHA256.get(path),
+        RELEASE_0_10_2_SHA256.get(path),
     )
 
 
