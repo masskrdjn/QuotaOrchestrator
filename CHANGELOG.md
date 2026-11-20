@@ -5,6 +5,17 @@ La version courante est définie dans le manifeste du plugin. Voir
 Les fixtures conservent les anciennes sources ; cet historique ne reconstitue
 pas les changements des versions précédentes.
 
+## 0.12.0 — 2026-11-20
+
+- Codex conserve par défaut à la racine le travail qu’un sous-agent ferait
+  avec le même modèle à un effort supérieur. Les exceptions reposent sur un
+  besoin précis de qualité ou de délai, ou sur un gain de coût complet mesuré.
+- Le triage distingue les lots spécifiés adaptés à Luna des lots qui demandent
+  un builder Sol. Avant d’ajouter un deuxième builder Sol, il faut réévaluer
+  le coût complet ou établir un besoin précis de qualité ou de délai.
+- Les installateurs reconnaissent les consignes Codex d’origine de la 0.11.0
+  pour les mettre à jour avec sauvegarde, en préservant les personnalisations.
+
 ## 0.11.0 — 2026-11-17 (préparée localement)
 
 - Codex utilise désormais GPT-6.2 Sol pour `builder`, `strategist`,

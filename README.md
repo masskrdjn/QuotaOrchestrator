@@ -45,6 +45,14 @@ the work stays with the primary agent. This rule takes precedence over all
 delegation criteria, including independent reviews; a different role is
 insufficient, and settings must not be artificially changed to bypass it.
 
+With the same model at higher effort, keep the work at the root by default.
+Delegate for a specific quality or latency need, or when comparable runs
+demonstrate a lower total cost. For Codex implementation, use `builder_luna`
+when the work is fully specified, reliably testable, and within Luna's
+capability. Start with at most one Sol builder. Before adding another, reassess
+the full cost including root coordination and integration, or identify the
+specific quality or latency need.
+
 ## Compare models independently of roles
 
 Roles define missions, restrictions, and deliverables. They do not rank models
@@ -347,7 +355,7 @@ with warnings; review them explicitly if they conflict with the Luna floor.
 ## Install as a plugin
 
 > [!IMPORTANT]
-> Current plugin version: **0.11.0**.
+> Current plugin version: **0.12.0**.
 >
 > An approved repository marketplace installs the plugin by default. Codex
 > still asks you to trust its bundled SessionStart hook once. That hook then

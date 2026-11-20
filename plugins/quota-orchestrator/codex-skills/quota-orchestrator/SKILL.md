@@ -103,6 +103,19 @@ allowed: these are input tokens, far cheaper than producing the work. Only a red
 (new reasoning, new exploration, rewriting) cancels the substitution and counts
 as rework.
 
+Keep the work at the root by default when the child would use the same model
+at a higher effort. Allow delegation for a specific quality or latency need, or
+when comparable runs demonstrate a lower total cost. The rate per token is the
+same at either effort.
+
+Evaluate the full implementation plan before spawning builders. Use
+`builder_luna` for a substantial, fully specified scope with reliable validation
+when Luna is capable. Reserve `builder` (Sol) for work that requires engineering
+judgment. Start with at most one Sol builder per task. Before adding another,
+reassess total cost against direct execution or a split with Luna. Justify the
+expected savings with concrete evidence or name the specific quality or latency
+need. Include shared reading, context, coordination, integration, and rework.
+
 The delegated scope belongs exclusively to the child until it responds. The
 root may wait, work on a disjoint scope announced before launch, or ask a
 question whose answer cannot change the delegated work. If the root can already

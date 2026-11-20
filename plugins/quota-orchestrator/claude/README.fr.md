@@ -226,7 +226,7 @@ ensuite une nouvelle session, ou lancez `/reload-plugins`.
   `~/.claude/settings.json`.
 - Ne cumulez pas le plugin et `install.py` sur un même projet : les règles
   seraient chargées deux fois et les rôles du projet masqueraient ceux du plugin.
-- Les deux manifestes partagent la même version (**0.11.0**). Le catalogue ne la duplique pas.
+- Les deux manifestes partagent la même version (**0.12.0**). Le catalogue ne la duplique pas.
 - `.claude/settings.json` est une configuration partagée, volontairement suivie
   par Git. Gardez vos réglages personnels et secrets dans
   `.claude/settings.local.json`, qui est ignoré.

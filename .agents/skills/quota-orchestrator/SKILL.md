@@ -109,6 +109,15 @@ Sans réponse concrète aux quatre points, garder le travail à la racine. Le
 parallélisme ou le seul prix par token ne suffisent pas : le gain se compte sur
 le coût complet, coordination comprise.
 
+Appliquer d'abord les règles de triage d'AGENTS.md sur l'effort et les builders.
+Sur un même modèle, un effort supérieur compte comme un besoin de capacité,
+sauf gain de coût établi par des exécutions comparables. Pour un lot découpé
+entre plusieurs builders, comparer l'ensemble à une exécution directe et à une
+répartition avec Luna si elle satisfait les mêmes critères. Le budget des
+enfants doit tenir dans le coût du travail racine remplacé après déduction des
+coûts d'encadrement et d'intégration. Recalculer avant d'ajouter un builder Sol.
+Une exception liée à la qualité ou au délai se motive avec le besoin concret.
+
 Après le retour, la racine intègre le résultat sans refaire l'exploration. Lire
 le résultat et le diff, et faire les contrôles ciblés nécessaires à l'acceptation,
 est permis : ce sont des tokens d'entrée, bien moins chers que produire le

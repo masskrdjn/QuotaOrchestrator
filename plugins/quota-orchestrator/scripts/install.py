@@ -107,6 +107,13 @@ RELEASE_0_10_2_SHA256 = {
     ".agents/skills/quota-orchestrator/SKILL.md": "b387226ddb9de69fc2944a7a643044125d4481a9cca67dc1c94dda8422f7cb91",
 }
 
+# Exact 0.11.0 routing instructions, before the builder cost rules.
+RELEASE_0_11_SHA256 = {
+    "AGENTS.md": "112bb11845b871c7eefcb12361e457dfd65ecae2b227d2c4f2859c5df43cebbf",
+    ".agents/skills/quota-orchestrator/SKILL.md": "a3cc1ab9681e5a4283043ac97c3e0063064093fbd204459f2a55226520b28195",
+}
+RELEASE_0_11_AGENTS_BLOCK_SHA256 = "cf3183c9684f60746bdf7e36caaaa058674d7ae38d47e4eb19b09d4370c7b602"
+
 # The wait bounds are one atomic group: Codex refuses a configuration unless min <= default <= max,
 # so they are added only when the user has none of the three and defines multi_agent_v2 nowhere else.
 WAIT_SECTION = ("features", "multi_agent_v2")
@@ -153,6 +160,7 @@ def _is_legacy(path: str, content: bytes) -> bool:
         RELEASE_0_8_3_SHA256.get(path),
         RELEASE_0_8_5_SHA256.get(path),
         RELEASE_0_10_2_SHA256.get(path),
+        RELEASE_0_11_SHA256.get(path),
     )
 
 
@@ -336,7 +344,17 @@ def _merge_agents(source: bytes, target: bytes, path: Path) -> tuple[bytes, list
         end = target_text.index(END, start)
         old_block = target_text[start:end].strip("\r\n").replace("\r\n", "\n")
         old_digest = hashlib.sha256(old_block.encode("utf-8")).hexdigest()
-        if old_digest in (LEGACY_AGENTS_BLOCK_SHA256, RELEASE_0_5_AGENTS_BLOCK_SHA256, RELEASE_0_7_AGENTS_BLOCK_SHA256, RELEASE_0_8_AGENTS_BLOCK_SHA256, RELEASE_0_8_1_AGENTS_BLOCK_SHA256, RELEASE_0_8_2_AGENTS_BLOCK_SHA256, RELEASE_0_8_3_AGENTS_BLOCK_SHA256, RELEASE_0_8_5_AGENTS_BLOCK_SHA256):
+        if old_digest in (
+            LEGACY_AGENTS_BLOCK_SHA256,
+            RELEASE_0_5_AGENTS_BLOCK_SHA256,
+            RELEASE_0_7_AGENTS_BLOCK_SHA256,
+            RELEASE_0_8_AGENTS_BLOCK_SHA256,
+            RELEASE_0_8_1_AGENTS_BLOCK_SHA256,
+            RELEASE_0_8_2_AGENTS_BLOCK_SHA256,
+            RELEASE_0_8_3_AGENTS_BLOCK_SHA256,
+            RELEASE_0_8_5_AGENTS_BLOCK_SHA256,
+            RELEASE_0_11_AGENTS_BLOCK_SHA256,
+        ):
             merged = target_text[:start] + newline + block + newline + target_text[end:]
             return _encode(merged, bom), []
         return target, [f"{path}: bloc codexskills existant conservé car il diffère de la source"]

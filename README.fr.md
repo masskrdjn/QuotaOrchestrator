@@ -46,6 +46,14 @@ sur tous les critères de délégation, y compris les revues indépendantes ;
 changer de rôle ne suffit pas et les paramètres ne doivent pas être modifiés
 artificiellement pour la contourner.
 
+À modèle identique et effort supérieur, le travail reste à l’agent principal
+par défaut. Déléguez pour un besoin précis de qualité ou de délai, ou si des
+exécutions comparables démontrent un coût total inférieur. Pour une
+implémentation Codex entièrement spécifiée et vérifiable, utilisez
+`builder_luna` si sa capacité suffit. Commencez avec au plus un builder Sol.
+Avant d’en ajouter un, réévaluez le coût complet, coordination et intégration
+comprises, ou identifiez le besoin précis de qualité ou de délai.
+
 ## Comparer les modèles indépendamment des rôles
 
 Les rôles définissent les missions, restrictions et livrables. Ils ne classent
@@ -360,7 +368,7 @@ s'ils contredisent le plancher Luna.
 ## Installation comme plugin
 
 > [!IMPORTANT]
-> Version actuelle du plugin : **0.11.0**.
+> Version actuelle du plugin : **0.12.0**.
 >
 > Une marketplace de dépôt approuvée installe le plugin par défaut. Codex
 > demande encore une fois votre confiance pour son hook SessionStart. Ce hook

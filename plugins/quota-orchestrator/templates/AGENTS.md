@@ -36,6 +36,20 @@ requêtes racine à tarif complet.
 Même modèle et même effort que la racine : rester à la racine, quel que soit
 le rôle ou le motif. Cette règle prime sur tout routage.
 
+Même modèle et effort supérieur : garder le travail à la racine par défaut.
+Déléguer seulement pour un besoin précis de qualité ou de délai, ou avec une
+mesure comparable montrant un gain de coût complet. Le changement d'effort
+ne modifie pas le tarif par token.
+
+Avant de lancer des builders, évaluer le coût du lot entier, racine comprise.
+Pour un lot substantiel au contrat figé et à la validation fiable, choisir
+`builder_luna` si sa capacité suffit. Réserver `builder` (Sol) au lot qui
+demande un jugement technique. Commencer avec au plus un builder Sol par tâche.
+Avant tout autre lancement Sol, réévaluer le coût complet du lot et établir
+un gain attendu avec des éléments concrets, ou nommer le besoin précis de
+qualité ou de délai. Compter les lectures communes, le contexte, la coordination,
+l'intégration et les reprises. Le nombre de lots ne suffit pas.
+
 Déléguer seulement dans ces cas :
 - `scout` (Luna ; `scout_complex` seulement pour une capacité Sol établie au
   cadrage) : point d'entrée à découvrir ou chaîne à tracer entre composants, si
