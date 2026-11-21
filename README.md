@@ -355,7 +355,7 @@ with warnings; review them explicitly if they conflict with the Luna floor.
 ## Install as a plugin
 
 > [!IMPORTANT]
-> Current plugin version: **0.12.0**.
+> Current plugin version: **0.13.0**.
 >
 > An approved repository marketplace installs the plugin by default. Codex
 > still asks you to trust its bundled SessionStart hook once. That hook then
@@ -473,6 +473,27 @@ Luna, pass `--upgrade-default-model` to both the dry run and install command.
 After installation, review any warnings and the model names, approval policy, sandbox mode, and concurrency limit for your environment. Trust the project when Codex asks, then start a new Codex task from that repository so the instruction chain is rebuilt. Project-scoped `.codex/config.toml` is loaded only for trusted projects.
 
 Codex discovers repository instructions from `AGENTS.md`, local skills from `.agents/skills`, and custom agents from `.codex/agents`. See the official documentation for [AGENTS.md](https://developers.openai.com/codex/guides/agents-md), [skills](https://developers.openai.com/codex/skills), [subagents](https://developers.openai.com/codex/subagents), and [configuration](https://developers.openai.com/codex/config-reference).
+
+### External delegation (experimental)
+
+In either host, ask QuotaOrchestrator to use the `external-delegation` skill
+and name the target CLI and the context it may receive. For example, ask it
+to send an excerpt to Grok Build for analysis. The plugin ships the shared
+helper and requires Python 3.11+ and an installed, authenticated target CLI
+on the terminal's PATH.
+
+From the mission's working directory, the skill runs the bundled helper:
+
+```text
+python "<plugin directory>/scripts/delegate_external.py" grok mission.txt
+```
+
+The UTF-8 file contains the instructions and context. The helper requests
+plan mode for one turn and returns a JSON response or error. Use
+`claude`, `grok`, or `agy` as the target. Optional `--model` and `--effort`
+values use the target CLI's vocabulary. The default timeout is 120 seconds.
+The target's permissions apply. Grok and Antigravity receive the mission as
+a process argument, so omit secrets.
 
 ## Safety boundaries
 

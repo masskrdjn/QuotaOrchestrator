@@ -5,6 +5,12 @@ La version courante est définie dans le manifeste du plugin. Voir
 Les fixtures conservent les anciennes sources ; cet historique ne reconstitue
 pas les changements des versions précédentes.
 
+## 0.13.0 — 2026-11-21
+
+- Codex et Claude Code embarquent une délégation externe facultative vers
+  Claude Code, Grok Build ou Antigravity. Le script commun transmet une
+  mission écrite et retourne une réponse ou un échec en JSON.
+
 ## 0.12.0 — 2026-11-20
 
 - Codex conserve par défaut à la racine le travail qu’un sous-agent ferait

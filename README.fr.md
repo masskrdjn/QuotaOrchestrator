@@ -368,7 +368,7 @@ s'ils contredisent le plancher Luna.
 ## Installation comme plugin
 
 > [!IMPORTANT]
-> Version actuelle du plugin : **0.12.0**.
+> Version actuelle du plugin : **0.13.0**.
 >
 > Une marketplace de dépôt approuvée installe le plugin par défaut. Codex
 > demande encore une fois votre confiance pour son hook SessionStart. Ce hook
@@ -493,6 +493,28 @@ l'installation.
 Après l’installation, vérifiez les éventuels avertissements ainsi que les noms de modèles, la politique d’approbation, le mode du bac à sable et la limite de concurrence pour votre environnement. Accordez votre confiance au projet lorsque Codex le demande, puis démarrez une nouvelle tâche Codex depuis ce dépôt afin de reconstruire la chaîne d’instructions. Le fichier `.codex/config.toml` du projet n’est chargé que pour les projets approuvés.
 
 Codex détecte les instructions du dépôt dans `AGENTS.md`, les skills locaux dans `.agents/skills` et les agents personnalisés dans `.codex/agents`. Consultez la documentation officielle sur [AGENTS.md](https://developers.openai.com/codex/guides/agents-md), les [skills](https://developers.openai.com/codex/skills), les [sous-agents](https://developers.openai.com/codex/subagents) et la [configuration](https://developers.openai.com/codex/config-reference).
+
+### Délégation externe (expérimentale)
+
+Dans Codex ou Claude Code, demandez à QuotaOrchestrator d'utiliser la compétence
+`external-delegation` et indiquez le CLI cible et le contexte qu'il peut
+recevoir. Vous pouvez par exemple demander l'analyse d'un extrait à Grok Build.
+Le plugin fournit le script commun. Il requiert Python 3.11+ et un CLI cible
+déjà installé, authentifié et accessible dans le `PATH` du terminal.
+
+Depuis le répertoire de travail de la mission, la compétence utilise le script
+embarqué.
+
+```text
+python "<dossier du plugin>/scripts/delegate_external.py" grok mission.txt
+```
+
+Le fichier UTF-8 contient la mission et son contexte. Le script demande le
+mode plan pour un seul tour et retourne la réponse ou l'erreur en JSON.
+Choisissez `claude`, `grok` ou `agy`. Les options `--model` et `--effort`
+emploient les valeurs du CLI cible. Le délai par défaut est de 120 secondes.
+Les permissions du CLI cible s'appliquent. Grok et Antigravity reçoivent la
+mission en argument du processus. Évitez d'y inclure des secrets.
 
 ## Limites de sécurité
 

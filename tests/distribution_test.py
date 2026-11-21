@@ -29,8 +29,16 @@ class Distribution(unittest.TestCase):
         codex_skills = (PLUGIN / codex['skills']).glob('*/SKILL.md')
         claude_skills = (PLUGIN / claude['skills']).glob('*/SKILL.md')
         self.assertEqual({p.parent.name for p in codex_skills},
-                         {'quota-orchestrator', 'quota-orchestrator-setup'})
-        self.assertEqual({p.parent.name for p in claude_skills}, {'quota-orchestrator'})
+                         {'quota-orchestrator', 'quota-orchestrator-setup', 'external-delegation'})
+        self.assertEqual({p.parent.name for p in claude_skills},
+                         {'quota-orchestrator', 'external-delegation'})
+        for host in (codex, claude):
+            skill = PLUGIN / host['skills'] / 'external-delegation/SKILL.md'
+            script, = re.findall(r'`(\.\./[^ `]+delegate_external\.py)`',
+                                 skill.read_text(encoding='utf-8'))
+            self.assertEqual((skill.parent / script).resolve(),
+                             PLUGIN / 'scripts/delegate_external.py')
+            self.assertTrue((skill.parent / script).is_file())
         codex_hooks = json.loads((PLUGIN / codex['hooks']).read_text(encoding='utf-8'))['hooks']
         self.assertEqual(set(codex_hooks), {'SessionStart', 'PreToolUse'})
         self.assertEqual(set(claude['hooks']), {'SessionStart', 'PostToolUse'})
