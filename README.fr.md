@@ -6,7 +6,7 @@ Pour modifier ce dépôt : lire [CONTRIBUTING.md](CONTRIBUTING.md).
 Les évolutions sont décrites dans [CHANGELOG.md](CHANGELOG.md).
 
 > [!IMPORTANT]
-> Version actuelle du plugin : **0.14.0**.
+> Version actuelle du plugin : **0.14.1**.
 >
 > Un seul dépôt, trois intégrations natives : **Codex** (OpenAI), **Claude Code** (Anthropic) et **Google Antigravity** (Google Gemini).
 

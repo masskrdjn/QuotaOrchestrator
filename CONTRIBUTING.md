@@ -24,15 +24,38 @@ plusieurs modifications et validations. Les ajustements du même lot non publié
 restent dans cette version. Ne jamais modifier une version déjà publiée sous le
 même numéro. La proposition `0.8.6`, non publiée, est regroupée dans la `0.9.0`.
 
-À chaque évolution : modifier les deux manifestes, synchroniser la version
+À chaque évolution : modifier les trois manifestes, synchroniser la version
 courante dans les deux README, compléter `CHANGELOG.md` avec la date et les
-changements, puis exécuter les validations pertinentes. Conserver les anciens numéros dans
-les fixtures, empreintes et notes historiques : aucun remplacement global.
+changements, puis exécuter les validations pertinentes. Conserver les anciens
+numéros dans les fixtures, empreintes et notes historiques : aucun remplacement
+global.
 La version du client simulé des tests natifs n'est pas la version du plugin.
 
 Distinguer « préparée localement », « commitée », « poussée » et « publiée ».
 Un numéro modifié ne prouve aucune étape suivante. Ne pas publier, pousser ou
-créer un tag au seul motif que la version a changé.
+créer un tag au seul motif que la version a changé. Dès qu'une version est
+publiée, elle doit avoir sa propre GitHub Release et son tag Git `vX.Y.Z`, tous
+deux correspondant exactement à la version des manifestes. Un tag Git seul ne
+crée pas une GitHub Release ; créer et publier une release pour chaque nouvelle
+version publiée, sans réutiliser une release ou un tag existant.
+
+## Publier une version
+
+Après avoir préparé et validé la version :
+
+1. Construire le bundle Antigravity déterministe avec
+   `python scripts/build_antigravity_bundle.py`. Le script met à jour
+   `.antigravity-plugin/marketplace.json` avec l'URL et l'empreinte SHA-256 du
+   bundle correspondant à la version des manifestes.
+2. Commiter et pousser le commit complet, puis créer et pousser le tag Git
+   annoté `vX.Y.Z` sur ce commit.
+3. Créer et publier une GitHub Release à partir de ce tag et joindre
+   `dist/quota-orchestrator-antigravity-X.Y.Z.zip`.
+4. Vérifier que la release et son archive sont visibles sur GitHub et que
+   `.antigravity-plugin/marketplace.json` référence bien cette archive et son
+   empreinte.
+
+Ne pas considérer la création du tag comme la publication de la release.
 
 ## Carte du projet et synchronisation
 

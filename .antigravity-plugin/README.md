@@ -5,7 +5,7 @@
 Selective multi-model routing for **Google Gemini** models in **Google Antigravity** (App, CLI, and IDE). Delegates substantial, well-scoped work to specialized subagents and lower-cost Gemini tiers while keeping decisions, integration, and small local tasks at the primary agent.
 
 > [!IMPORTANT]
-> Current plugin version: **0.14.0**.
+> Current plugin version: **0.14.1**.
 
 ## Prerequisites
 

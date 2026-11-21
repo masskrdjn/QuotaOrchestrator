@@ -8,6 +8,8 @@ Dans le dépôt source QuotaOrchestrator uniquement, identifié par la présence
 augmenter la version du manifeste, synchroniser les deux README et documenter
 le changement dans `CHANGELOG.md`, sans rappel de l'utilisateur. Appliquer les
 règles de synchronisation, de migration et de validation qui y sont décrites.
+Lorsqu'une version est publiée, créer aussi son tag Git `vX.Y.Z` et une
+GitHub Release correspondante ; un tag seul ne crée pas de release.
 Cette section ne s'applique pas aux projets qui installent le routage.
 
 Priorités : préserver la qualité et la pertinence du résultat, puis réduire le

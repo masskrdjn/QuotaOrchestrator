@@ -5,7 +5,7 @@
 Routage sélectif multi-modèles pour les modèles **Google Gemini** dans **Google Antigravity** (App, CLI et IDE). Confie les lots substantiels et bornés à des sous-agents spécialisés et à des paliers Gemini moins coûteux, tout en conservant décisions, intégration et petites tâches locales à la racine.
 
 > [!IMPORTANT]
-> Version actuelle du plugin : **0.14.0**.
+> Version actuelle du plugin : **0.14.1**.
 
 ## Prérequis
 

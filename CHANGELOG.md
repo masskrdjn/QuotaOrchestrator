@@ -5,6 +5,12 @@ La version courante est définie dans le manifeste du plugin. Voir
 Les fixtures conservent les anciennes sources ; cet historique ne reconstitue
 pas les changements des versions précédentes.
 
+## 0.14.1 — 2026-11-21
+
+- Documentation de publication clarifiée : chaque version publiée doit avoir
+  un tag Git correspondant et une GitHub Release distincte avec le bundle
+  Antigravity attendu par le catalogue.
+
 ## 0.14.0 — 2026-11-21 (préparée localement)
 
 - Ajout d'un hook `SessionStart` pour Google Antigravity (`hooks.json` et

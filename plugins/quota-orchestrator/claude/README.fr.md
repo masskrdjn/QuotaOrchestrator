@@ -226,7 +226,7 @@ ensuite une nouvelle session, ou lancez `/reload-plugins`.
   `~/.claude/settings.json`.
 - Ne cumulez pas le plugin et `install.py` sur un même projet : les règles
   seraient chargées deux fois et les rôles du projet masqueraient ceux du plugin.
-- Les trois manifestes hôtes (Codex, Claude Code et Antigravity) partagent la même version (**0.14.0**). Le catalogue ne la duplique pas.
+- Les trois manifestes hôtes (Codex, Claude Code et Antigravity) partagent la même version (**0.14.1**). Le catalogue ne la duplique pas.
 - `.claude/settings.json` est une configuration partagée, volontairement suivie
   par Git. Gardez vos réglages personnels et secrets dans
   `.claude/settings.local.json`, qui est ignoré.
