@@ -45,8 +45,8 @@ Après avoir préparé et validé la version :
 
 1. Construire le bundle Antigravity déterministe avec
    `python scripts/build_antigravity_bundle.py`. Le script met à jour
-   `.antigravity-plugin/marketplace.json` avec l'URL et l'empreinte SHA-256 du
-   bundle correspondant à la version des manifestes.
+   `.antigravity-plugin/marketplace.json` avec la version, l'URL et l'empreinte
+   SHA-256 du bundle correspondant à la version des manifestes.
 2. Commiter et pousser le commit complet, puis créer et pousser le tag Git
    annoté `vX.Y.Z` sur ce commit.
 3. Créer et publier une GitHub Release à partir de ce tag et joindre

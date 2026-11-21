@@ -105,6 +105,9 @@ def main(argv: list[str] | None = None) -> int:
     if args.check:
         marketplace = json.loads(MARKETPLACE_PATH.read_text(encoding="utf-8"))
         entry, = marketplace["plugins"]
+        if entry.get("version") != version:
+            print(f"MISMATCH version: expected {version}, got {entry.get('version')}", file=sys.stderr)
+            return 1
         source = entry["source"]
         if source.get("url") != url:
             print(f"MISMATCH url: expected {url}, got {source.get('url')}", file=sys.stderr)
@@ -121,6 +124,7 @@ def main(argv: list[str] | None = None) -> int:
 
     marketplace = json.loads(MARKETPLACE_PATH.read_text(encoding="utf-8"))
     entry, = marketplace["plugins"]
+    entry["version"] = version
     entry["source"] = {
         "source": "url",
         "url": url,

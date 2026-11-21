@@ -5,7 +5,7 @@
 Selective multi-model routing for **Google Gemini** models in **Google Antigravity** (App, CLI, and IDE). Delegates substantial, well-scoped work to specialized subagents and lower-cost Gemini tiers while keeping decisions, integration, and small local tasks at the primary agent.
 
 > [!IMPORTANT]
-> Current plugin version: **0.14.1**.
+> Current plugin version: **0.14.2**.
 
 ## Prerequisites
 
@@ -32,12 +32,12 @@ agy plugin list
 
 ### Packaging and Marketplace release
 
-Antigravity's `marketplace.json` validator (`agy plugin validate ./.antigravity-plugin/marketplace.json`) requires an `https://` archive URL and its matching `sha256` checksum. From the repository root, build and verify the deterministic `.zip` bundle before publishing a GitHub release:
+Antigravity's `marketplace.json` validator (`agy plugin validate ./.antigravity-plugin/marketplace.json`) requires the plugin version, an `https://` archive URL, and its matching `sha256` checksum. The build script synchronizes these fields. From the repository root, build and verify the deterministic `.zip` bundle before publishing a GitHub release:
 
 ```bash
 python scripts/build_antigravity_bundle.py
 python scripts/build_antigravity_bundle.py --check
-agy plugin validate --strict ./dist/quota-orchestrator-antigravity-0.14.0.zip
+agy plugin validate --strict ./dist/quota-orchestrator-antigravity-0.14.2.zip
 ```
 
 Attach the generated `dist/quota-orchestrator-antigravity-<version>.zip` to the matching GitHub Release (`v<version>`), then verify the remote catalog with `agy plugin validate --strict ./.antigravity-plugin/marketplace.json`.

@@ -5,7 +5,7 @@
 Un plugin et une configuration Codex qui confient le travail substantiel et bien cadré à des profils de modèles OpenAI spécialisés, tout en gardant les décisions, l'intégration et les petites tâches locales à l'agent principal.
 
 > [!IMPORTANT]
-> Version actuelle du plugin : **0.14.1**.
+> Version actuelle du plugin : **0.14.2**.
 >
 > Une marketplace de dépôt approuvée installe le plugin par défaut. Codex
 > demande encore une fois votre confiance pour son hook `SessionStart`. Ce hook

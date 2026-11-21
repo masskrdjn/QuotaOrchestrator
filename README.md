@@ -6,7 +6,7 @@ To modify this repository, read [CONTRIBUTING.md](CONTRIBUTING.md).
 See [CHANGELOG.md](CHANGELOG.md) for changes.
 
 > [!IMPORTANT]
-> Current plugin version: **0.14.1**.
+> Current plugin version: **0.14.2**.
 >
 > One repository, three native integrations: **Codex** (OpenAI), **Claude Code** (Anthropic), and **Google Antigravity** (Google Gemini).
 

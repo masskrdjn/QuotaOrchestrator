@@ -5,6 +5,13 @@ La version courante est définie dans le manifeste du plugin. Voir
 Les fixtures conservent les anciennes sources ; cet historique ne reconstitue
 pas les changements des versions précédentes.
 
+## 0.14.2 — 2026-11-21
+
+- Le catalogue Antigravity synchronise maintenant son champ `version` avec les
+  trois manifestes hôtes. Sans ce champ, `agy` ignorait le plugin du catalogue.
+- Le générateur de bundle vérifie également cette version et les guides de
+  publication Antigravity utilisent la version courante.
+
 ## 0.14.1 — 2026-11-21
 
 - Documentation de publication clarifiée : chaque version publiée doit avoir
