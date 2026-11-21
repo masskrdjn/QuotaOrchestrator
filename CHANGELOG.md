@@ -7,9 +7,16 @@ pas les changements des versions précédentes.
 
 ## 0.15.0 — 2026-11-21
 
-- Codex et Claude Code embarquent une délégation externe facultative vers
-  Claude Code, Grok Build ou Antigravity. Le script commun transmet une
-  mission écrite et retourne une réponse ou un échec en JSON.
+- Codex, Claude Code et Antigravity embarquent une délégation externe
+  facultative vers les CLI Codex, Claude Code, Grok Build et Antigravity.
+  Le script commun retourne la réponse ou l'erreur en JSON.
+- Codex exécute une session éphémère en lecture seule et transmet son dernier
+  message. Codex et Claude Code lisent la mission sur l'entrée standard.
+  Grok lit un fichier temporaire UTF-8 sans BOM.
+- Claude Code et Antigravity désactivent l'expansion des commandes slash
+  pour les missions. Antigravity reçoit son propre délai d'arrêt.
+- Sous Windows, le script résout les shims npm de Codex, Claude Code et Grok.
+  Il distingue un CLI introuvable d'une erreur de lancement.
 
 ## 0.14.0 — 2026-11-21 (préparée localement)
 

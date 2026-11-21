@@ -1,18 +1,31 @@
 """Run one explicitly requested mission through an installed agent CLI."""
 
 import argparse
+from contextlib import nullcontext
 import json
 import os
 from pathlib import Path
 import shutil
 import subprocess
 import sys
+import tempfile
 
 
 PROVIDERS = {
-    "claude": ["--permission-mode", "plan", "--output-format", "text"],
+    "codex": [
+        "exec", "--sandbox", "read-only", "--ephemeral", "--color", "never",
+        "--skip-git-repo-check",
+    ],
+    "claude": [
+        "--permission-mode", "plan", "--output-format", "text", "--disable-slash-commands",
+    ],
     "grok": ["--permission-mode", "plan", "--output-format", "plain"],
-    "agy": ["--mode", "plan", "--sandbox", "--output-format", "text"],
+    "agy": ["--mode", "plan", "--sandbox", "--output-format", "text", "--disable-slash-commands"],
+}
+
+NODE_ENTRIES = {
+    "codex": "@openai/codex/bin/codex.js",
+    "grok": "@xai-official/grok/bin/grok",
 }
 
 
@@ -30,20 +43,27 @@ def executable_command(provider):
     shim = shutil.which(f"{provider}.cmd")
     if shim is None:
         return None
-    modules = Path(shim).parent / "node_modules"
+    shim_dir = Path(shim).parent
+    modules = shim_dir / "node_modules"
     if provider == "claude":
         executable = modules / "@anthropic-ai/claude-code/bin/claude.exe"
         return [str(executable)] if executable.is_file() else None
-    if provider == "grok":
-        entry = modules / "@xai-official/grok/bin/grok"
-        node = shutil.which("node.exe")
+    if provider in NODE_ENTRIES:
+        entry = modules / NODE_ENTRIES[provider]
+        local_node = shim_dir / "node.exe"
+        node = str(local_node) if local_node.is_file() else shutil.which("node.exe")
         return [node, str(entry)] if node and entry.is_file() else None
     return None
 
 
 def delegate(provider, mission, model, effort, timeout):
     result = {"provider": provider}
-    command = executable_command(provider)
+    try:
+        command = executable_command(provider)
+    except FileNotFoundError as exc:
+        return {**result, "status": "unavailable", "error": str(exc)}
+    except OSError as exc:
+        return {**result, "status": "failed", "error": str(exc)}
     if command is None:
         return {**result, "status": "unavailable", "error": f"{provider} was not found on PATH."}
 
@@ -51,39 +71,66 @@ def delegate(provider, mission, model, effort, timeout):
     if model:
         command.append(f"--model={model}")
     if effort:
-        command.append(f"--effort={effort}")
-    if provider == "claude":
-        command.append("--print")
-        prompt_input = {"input": mission}
-    elif provider == "grok":
-        command.append(f"--single={mission}")
-        prompt_input = {"stdin": subprocess.DEVNULL}
-    else:
-        command.append(f"--print={mission}")
-        prompt_input = {"stdin": subprocess.DEVNULL}
-    try:
-        response = subprocess.run(
-            command,
-            **prompt_input,
-            capture_output=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=timeout,
-            check=False,
-        )
-    except subprocess.TimeoutExpired:
-        return {**result, "status": "timeout", "error": f"CLI exceeded {timeout} seconds."}
-    except OSError as exc:
-        return {**result, "status": "unavailable", "error": str(exc)}
+        if provider == "codex":
+            command.extend(["-c", f"model_reasoning_effort={json.dumps(effort, ensure_ascii=False)}"])
+        else:
+            command.append(f"--effort={effort}")
 
-    if response.returncode:
-        return {
-            **result, "status": "failed", "exit_code": response.returncode,
-            "error": (response.stderr.strip() or response.stdout.strip())[-2000:],
-        }
-    if not response.stdout.strip():
+    try:
+        temp_dir = tempfile.TemporaryDirectory() if provider in {"codex", "grok"} else nullcontext()
+        with temp_dir as directory:
+            output_path = None
+            prompt_input = {"stdin": subprocess.DEVNULL}
+            process_timeout = timeout
+            if provider == "codex":
+                output_path = Path(directory) / "last-message.txt"
+                command.extend(["-o", str(output_path), "-"])
+                prompt_input = {"input": mission}
+            elif provider == "claude":
+                command.append("--print")
+                prompt_input = {"input": mission}
+            elif provider == "grok":
+                prompt_path = Path(directory) / "mission.txt"
+                prompt_path.write_bytes(mission.encode("utf-8"))
+                command.extend(["--prompt-file", str(prompt_path)])
+            else:
+                command.extend([f"--print-timeout={timeout}s", f"--print={mission}"])
+                process_timeout += 1  # Let Antigravity handle its own deadline first.
+
+            try:
+                response = subprocess.run(
+                    command,
+                    **prompt_input,
+                    capture_output=True,
+                    encoding="utf-8",
+                    errors="replace",
+                    timeout=process_timeout,
+                    check=False,
+                )
+            except FileNotFoundError as exc:
+                return {**result, "status": "unavailable", "error": str(exc)}
+
+            if response.returncode:
+                return {
+                    **result, "status": "failed", "exit_code": response.returncode,
+                    "error": (response.stderr.strip() or response.stdout.strip())[-2000:],
+                }
+
+            message = ""
+            if output_path is not None:
+                try:
+                    message = output_path.read_text(encoding="utf-8", errors="replace").strip()
+                except FileNotFoundError:
+                    pass
+            message = message or response.stdout.strip()
+    except subprocess.TimeoutExpired:
+        return {**result, "status": "timeout", "error": f"CLI exceeded {process_timeout} seconds."}
+    except OSError as exc:
+        return {**result, "status": "failed", "error": str(exc)}
+
+    if not message:
         return {**result, "status": "failed", "error": "CLI returned an empty response."}
-    return {**result, "status": "ok", "response": response.stdout.strip()}
+    return {**result, "status": "ok", "response": message}
 
 
 def main():

@@ -32,6 +32,7 @@ BUNDLE_FILES = (
     "hooks.json",
     "scripts/check_delegation.py",
     "scripts/check_updates.py",
+    "plugins/quota-orchestrator/scripts/delegate_external.py",
 )
 BUNDLE_DIRS = (
     "assets",
@@ -78,7 +79,10 @@ def build_zip_bytes(root: Path = ROOT) -> bytes:
             info.compress_type = zipfile.ZIP_DEFLATED
             mode = 0o755 if rel.startswith("scripts/") else 0o644
             info.external_attr = (0o100000 | mode) << 16
-            zf.writestr(info, path.read_bytes())
+            content = path.read_bytes()
+            if path.suffix in {".json", ".md", ".py"}:
+                content = content.replace(b"\r\n", b"\n")
+            zf.writestr(info, content)
     return buffer.getvalue()
 
 

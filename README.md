@@ -99,7 +99,7 @@ For full model pricing tables, effort selection grids, escalation gates, and pla
 
 ## External delegation (experimental)
 
-In Codex or Claude Code, ask QuotaOrchestrator to use the `external-delegation` skill
+In Codex, Claude Code, or Antigravity, ask QuotaOrchestrator to use the `external-delegation` skill
 and name the target CLI and the context it may receive. For example, ask it
 to send an excerpt to Grok Build for analysis. The plugin ships the shared
 helper and requires Python 3.11+ and an installed, authenticated target CLI
@@ -111,12 +111,15 @@ From the mission's working directory, the skill runs the bundled helper:
 python "<plugin directory>/scripts/delegate_external.py" grok mission.txt
 ```
 
-The UTF-8 file contains the instructions and context. The helper requests
-plan mode for one turn and returns a JSON response or error. Use
-`claude`, `grok`, or `agy` as the target. Optional `--model` and `--effort`
-values use the target CLI's vocabulary. The default timeout is 120 seconds.
-The target's permissions apply. Grok and Antigravity receive the mission as
-a process argument, so omit secrets.
+The UTF-8 file contains the instructions and context. Choose `codex`, `claude`,
+`grok`, or `agy`. The helper requests a single turn in read-only mode for Codex
+and plan mode for the other CLIs. It returns the response or error as JSON.
+Optional `--model` and `--effort` values depend on the target. With `agy`, specify
+effort through a suffixed model ID or through `--effort` with a base model ID.
+The default timeout is 120 seconds, with one additional second for `agy` to exit.
+Codex and Claude Code receive the mission on stdin, Grok reads a temporary UTF-8
+file, and Antigravity receives it as a process argument in text mode. The
+target's permissions apply.
 
 ## Safety boundaries
 

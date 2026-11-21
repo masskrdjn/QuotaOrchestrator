@@ -99,7 +99,7 @@ Pour les tables de tarifs détaillées, grilles de choix d'effort, conditions d'
 
 ## Délégation externe (expérimentale)
 
-Dans Codex ou Claude Code, demandez à QuotaOrchestrator d'utiliser la compétence
+Dans Codex, Claude Code ou Antigravity, demandez à QuotaOrchestrator d'utiliser la compétence
 `external-delegation` et indiquez le CLI cible et le contexte qu'il peut
 recevoir. Vous pouvez par exemple demander l'analyse d'un extrait à Grok Build.
 Le plugin fournit le script commun. Il requiert Python 3.11+ et un CLI cible
@@ -112,12 +112,16 @@ embarqué.
 python "<dossier du plugin>/scripts/delegate_external.py" grok mission.txt
 ```
 
-Le fichier UTF-8 contient la mission et son contexte. Le script demande le
-mode plan pour un seul tour et retourne la réponse ou l'erreur en JSON.
-Choisissez `claude`, `grok` ou `agy`. Les options `--model` et `--effort`
-emploient les valeurs du CLI cible. Le délai par défaut est de 120 secondes.
-Les permissions du CLI cible s'appliquent. Grok et Antigravity reçoivent la
-mission en argument du processus. Évitez d'y inclure des secrets.
+Le fichier UTF-8 contient la mission et son contexte. Choisissez `codex`,
+`claude`, `grok` ou `agy`. Le script demande un seul tour en lecture seule
+pour Codex et en mode plan pour les autres CLI. Il retourne la réponse ou
+l'erreur en JSON. Les valeurs de `--model` et `--effort` dépendent de la cible.
+Avec `agy`, indiquez l'effort par un suffixe dans l'identifiant du modèle ou
+par `--effort` avec l'identifiant de base. Le délai par défaut est de 120
+secondes, avec une seconde supplémentaire pour laisser `agy` s'arrêter.
+Codex et Claude Code reçoivent la mission sur l'entrée standard, Grok lit un
+fichier UTF-8 temporaire et Antigravity reçoit la mission en argument du
+processus en mode texte. Les permissions du CLI cible s'appliquent.
 
 ## Limites de sécurité
 
