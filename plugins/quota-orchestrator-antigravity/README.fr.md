@@ -1,0 +1,66 @@
+# QuotaOrchestrator pour Antigravity (Google Gemini)
+
+[English](README.md) · [Dépôt principal](../../README.fr.md)
+
+Routage sélectif multi-modèles pour les modèles **Google Gemini** dans **Google Antigravity** (App, CLI et IDE). Confie les lots substantiels et bornés à des sous-agents spécialisés et à des paliers Gemini moins coûteux, tout en conservant décisions, intégration et petites tâches locales à la racine.
+
+## Prérequis
+
+- **Google Antigravity** (CLI `agy`, App ou IDE).
+- **Python 3.11+** disponible dans le `PATH` sous la commande `python` (requis par le hook garde-fou `PreToolUse`).
+
+## Installation
+
+### Depuis un clone local
+
+```bash
+agy plugin validate --strict ./plugins/quota-orchestrator-antigravity
+agy plugin install ./plugins/quota-orchestrator-antigravity
+agy plugin list
+```
+
+Dans un clone de ce dépôt, `.agents/plugins.json` déclare également `plugins/quota-orchestrator-antigravity` pour la découverte automatique au niveau workspace.
+
+### Depuis GitHub
+
+```bash
+agy plugin install https://github.com/masskrdjn/QuotaOrchestrator/tree/main/plugins/quota-orchestrator-antigravity
+```
+
+### Empaquetage et catalogue Marketplace
+
+Le validateur `agy plugin validate ./.antigravity-plugin/marketplace.json` exige une URL `https://` pointant vers une archive `.zip` accompagnée de son empreinte `sha256`. Depuis la racine du dépôt, construisez et contrôlez le bundle déterministe avant de publier une release GitHub :
+
+```bash
+python scripts/build_antigravity_bundle.py
+python scripts/build_antigravity_bundle.py --check
+agy plugin validate --strict ./dist/quota-orchestrator-antigravity-0.13.0.zip
+```
+
+Joignez le fichier `dist/quota-orchestrator-antigravity-<version>.zip` à la release GitHub correspondante (`v<version>`), puis vérifiez le catalogue distant avec `agy plugin validate --strict ./.antigravity-plugin/marketplace.json`.
+
+## Composants inclus
+
+- **7 sous-agents natifs** (`agents/*.md`) pour `invoke_subagent` :
+  - `runner` (`flash_lite`) — barrières de validation longues et matrices de tests indépendantes.
+  - `scout` (`flash`) — exploration en lecture seule avec preuves `chemin:ligne`.
+  - `researcher` (`flash`) — recherche documentaire multi-sources.
+  - `builder-flash` (`flash`) — implémentation substantielle au contrat figé et testable.
+  - `builder` (`pro`) — implémentation complexe demandant un jugement technique.
+  - `strategist` (`pro`) — cadrage, découpage et spécification sans écriture.
+  - `architect` (`pro`) — décisions d'architecture rares sur enveloppe bornée.
+- **Règles de routage actives** (`rules/AGENTS.md`) — seuils de triage, interdiction même modèle/même effort et préservation des quotas.
+- **Skill à la demande** (`skills/quota-orchestrator/SKILL.md`) — grille complète des modèles Google Gemini et de leurs efforts pour `swarm` et `agy --model` (`gemini-3.8-flash-*`, `gemini-4-hydrogen-*`, `gemini-4-neon-*`, `gemini-4-argon-*`).
+- **Garde-fou `PreToolUse`** (`hooks.json` + `scripts/check_delegation.py`) — refuse les délégations redondantes au même modèle et même effort que la racine (`invoke_subagent` en `inherit` sur rôle générique, ou `swarm` `add` sans modèle ou avec un modèle identique à la racine). Requiert Python 3.11+ disponible en tant que `python`.
+
+## Paliers de modèles Google Gemini
+
+| Surface | Palier / Identifiants modèle | Usage typique |
+|---|---|---|
+| `invoke_subagent` | `flash_lite` | `runner` |
+| `invoke_subagent` | `flash` | `scout`, `researcher`, `builder-flash` |
+| `invoke_subagent` | `pro` | `builder`, `strategist`, `architect` |
+| `swarm` / CLI | `gemini-3.8-flash-{low,medium,high}` | Validations rapides, triage volumineux (~0,75 / 3,75 $/MTok) |
+| `swarm` / CLI | `gemini-4-hydrogen-{low,medium,high,xhigh}` | Exploration, recherche structurée, implémentation spécifiée (1,50 / 7,50 $/MTok) |
+| `swarm` / CLI | `gemini-4-neon-{low,medium,high,xhigh}` | Racine par défaut, ingénierie complexe, intégration (3,00 / 15,00 $/MTok) |
+| `swarm` / CLI | `gemini-4-argon-{low,medium,high}` | Raisonnement frontière rare et consultations `architect` (quota hebdomadaire dédié) |

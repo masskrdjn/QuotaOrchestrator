@@ -1,0 +1,10 @@
+{
+  "entries": [
+    {
+      "path": "plugins",
+      "include_only": [
+        "quota-orchestrator-antigravity"
+      ]
+    }
+  ]
+}

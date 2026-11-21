@@ -5,9 +5,9 @@
 Pour modifier ce dépôt : lire [CONTRIBUTING.md](CONTRIBUTING.md).
 Les évolutions sont décrites dans [CHANGELOG.md](CHANGELOG.md).
 
-QuotaOrchestrator est un plugin unique pour Codex et Claude Code. Il confie le travail à des agents spécialisés lorsque la délégation peut préserver la qualité tout en réduisant le coût total ou le délai. L’agent principal reste responsable des décisions, de l’intégration et de la communication avec l’utilisateur.
+QuotaOrchestrator fournit le routage multi-modèles pour Codex, Claude Code et Google Antigravity. Il confie le travail à des agents spécialisés lorsque la délégation peut préserver la qualité tout en réduisant le coût total ou le délai. L’agent principal reste responsable des décisions, de l’intégration et de la communication avec l’utilisateur.
 
-Ce projet contient le plugin commun et ses marketplaces locales. Commencez par le [démarrage rapide Codex](#démarrage-rapide) ou le [guide d’installation et de migration Claude Code](plugins/quota-orchestrator/claude/README.fr.md#installer-comme-plugin).
+Ce projet contient le plugin commun Codex/Claude Code, le plugin natif Antigravity (`plugins/quota-orchestrator-antigravity`) et leurs catalogues locaux. Commencez par le [démarrage rapide Codex](#démarrage-rapide), le [guide d’installation et de migration Claude Code](plugins/quota-orchestrator/claude/README.fr.md#installer-comme-plugin) ou le [guide Antigravity (Google Gemini)](plugins/quota-orchestrator-antigravity/README.fr.md).
 
 ## Démarrage rapide
 
@@ -330,7 +330,9 @@ s'ils contredisent le plancher Luna.
 .
 ├── AGENTS.md
 ├── .agents/skills/quota-orchestrator/SKILL.md
+├── .agents/plugins.json
 ├── .agents/plugins/marketplace.json
+├── .antigravity-plugin/marketplace.json
 ├── .claude-plugin/marketplace.json
 ├── plugins/quota-orchestrator/
 │   ├── .codex-plugin/plugin.json
@@ -341,6 +343,11 @@ s'ils contredisent le plancher Luna.
 │   │   └── quota-orchestrator-setup/SKILL.md
 │   ├── scripts/install.py
 │   └── templates/
+├── plugins/quota-orchestrator-antigravity/
+│   ├── .antigravity-plugin/plugin.json, assets/logo.png
+│   ├── agents/*.md, rules/AGENTS.md, skills/quota-orchestrator/SKILL.md
+│   └── hooks.json, scripts/check_delegation.py
+├── scripts/build_antigravity_bundle.py
 └── .codex/
     ├── config.toml
     └── agents/
@@ -362,13 +369,14 @@ s'ils contredisent le plancher Luna.
 - `.codex/config.toml` sélectionne le modèle principal et active le travail multi-agent.
 - `.codex/agents/*.toml` définit le modèle, les outils, les limites et le contrat de compte rendu de chaque rôle.
 - `.agents/plugins/marketplace.json` expose le catalogue Codex du dépôt.
-- `plugins/quota-orchestrator/` contient les manifestes communs et les composants propres à chaque hôte.
+- `plugins/quota-orchestrator/` contient les manifestes communs Codex/Claude Code et les composants propres à chaque hôte.
+- `plugins/quota-orchestrator-antigravity/` est le plugin natif Google Antigravity (séparé pour éviter toute collision sur `agents/` avec Claude Code). `.agents/plugins.json` active sa découverte au niveau workspace, `.antigravity-plugin/marketplace.json` référence l'archive de release épinglée et `scripts/build_antigravity_bundle.py` construit et vérifie son empreinte SHA-256.
 - L'outillage de mesure derrière les chiffres cités plus bas (table de tarifs datée, exporteur d'usage par réponse, harnais de runs appariés) est local et non versionné. `fixtures/release_0_8_0/` conserve les fichiers authentiques de la 0.8.0 dont les tests de l'installateur migrent.
 
 ## Installation comme plugin
 
 > [!IMPORTANT]
-> Version actuelle du plugin : **0.12.0**.
+> Version actuelle du plugin : **0.13.0**.
 >
 > Une marketplace de dépôt approuvée installe le plugin par défaut. Codex
 > demande encore une fois votre confiance pour son hook SessionStart. Ce hook

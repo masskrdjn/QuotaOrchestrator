@@ -9,7 +9,8 @@ Chaque évolution livrable, y compris une correction, une documentation ou une
 modification des consignes, doit augmenter la version sans attendre une demande
 de l'utilisateur. La source de vérité est le champ `version` de
 `plugins/quota-orchestrator/.codex-plugin/plugin.json`; le même numéro doit
-figurer dans `plugins/quota-orchestrator/.claude-plugin/plugin.json`.
+figurer dans `plugins/quota-orchestrator/.claude-plugin/plugin.json` et dans
+`plugins/quota-orchestrator-antigravity/.antigravity-plugin/plugin.json`.
 
 - **PATCH** : correction compatible, documentation ou maintenance sans nouvelle
   capacité. Exemple : `0.9.0` → `0.9.1`.
@@ -54,6 +55,8 @@ créer un tag au seul motif que la version a changé.
 | `.claude-plugin/marketplace.json` et `plugins/quota-orchestrator/.claude-plugin/plugin.json` | Catalogue Claude Code et manifeste du paquet commun ; synchroniser son nom et sa version avec le manifeste Codex. |
 | `plugins/quota-orchestrator/claude/` | Skill, hook, réglages, installateur classique, tests, documentation et outils de mesure Claude Code. Garder les composants Codex hors des emplacements découverts par défaut par Claude Code. |
 | `plugins/quota-orchestrator/agents/` | Cinq agents chargés par Claude Code en mode plugin ; leurs copies dans `claude/.claude/agents/` restent synchronisées pour l’installation classique. |
+| `plugins/quota-orchestrator-antigravity/` | Plugin natif Google Antigravity (`.antigravity-plugin/plugin.json`, sept sous-agents `agents/*.md`, `rules/AGENTS.md`, `skills/quota-orchestrator/SKILL.md`, `hooks.json` et `scripts/check_delegation.py`). Synchroniser `version` avec les manifestes Codex et Claude Code ; valider via `agy plugin validate --strict ./plugins/quota-orchestrator-antigravity`. |
+| `.antigravity-plugin/marketplace.json` et `.agents/plugins.json` | Catalogue Antigravity (`source.url` HTTPS + `source.sha256` mis à jour par `python scripts/build_antigravity_bundle.py`) et découverte workspace ciblée sur `quota-orchestrator-antigravity`. |
 | `README.md`, `README.fr.md` | Documentation utilisateur anglaise et française ; garder version, profils, installation et limites cohérents. |
 | `fixtures/release_*/` | Sources historiques des migrations, à préserver. |
 | `test_install.py`, `test_reconcile.py`, `tests/` | Tests d'installation, de réconciliation, du garde-fou et de distribution. |
@@ -112,6 +115,8 @@ Python 3.11 ou supérieur est requis. Depuis la racine :
 python -m unittest discover -s tests -p '*_test.py'
 python test_install.py
 python test_reconcile.py
+agy plugin validate --strict ./plugins/quota-orchestrator-antigravity
+python scripts/build_antigravity_bundle.py --check
 git diff --check
 ```
 

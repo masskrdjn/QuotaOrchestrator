@@ -1,5 +1,6 @@
 /rapport.md
 /tests-archive
+/dist/
 /__pycache__
 __pycache__/
 *.py[cod]

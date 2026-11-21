@@ -5,6 +5,26 @@ La version courante est définie dans le manifeste du plugin. Voir
 Les fixtures conservent les anciennes sources ; cet historique ne reconstitue
 pas les changements des versions précédentes.
 
+## 0.13.0 — 2026-11-21 (préparée localement)
+
+- Ajout du support natif Google Antigravity dans un paquet dédié
+  `plugins/quota-orchestrator-antigravity/` (validé sans avertissement par
+  `agy plugin validate --strict`) avec manifeste `.antigravity-plugin/plugin.json`,
+  logo, documentation bilingue et découverte workspace `.agents/plugins.json`.
+- Orchestration complète des modèles Google Gemini dans Antigravity :
+  sept sous-agents natifs (`runner` sur `flash_lite` ; `scout`, `researcher` et
+  `builder-flash` sur `flash` ; `builder`, `strategist` et `architect` sur
+  `pro`), règles toujours actives (`rules/AGENTS.md`) et skill à la demande
+  (`skills/quota-orchestrator/SKILL.md`) couvrant `gemini-3.8-flash-*`,
+  `gemini-4-hydrogen-*`, `gemini-4-neon-*` et `gemini-4-argon-*` pour `swarm`
+  et `agy --model`.
+- Ajout d'un garde-fou `PreToolUse` (`hooks.json` et `scripts/check_delegation.py`)
+  refusant les délégations redondantes au même modèle et même effort que la
+  racine sur `invoke_subagent` et `swarm`, ainsi que la suite de tests
+  `tests/antigravity_plugin_test.py`, le catalogue `.antigravity-plugin/marketplace.json`
+  (`source.url` HTTPS + `source.sha256`) et le script d'empaquetage déterministe
+  `scripts/build_antigravity_bundle.py`.
+
 ## 0.12.0 — 2026-11-20
 
 - Codex conserve par défaut à la racine le travail qu’un sous-agent ferait
