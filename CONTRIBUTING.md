@@ -57,7 +57,8 @@ créer un tag au seul motif que la version a changé.
 | `plugins/quota-orchestrator/agents/` | Cinq agents chargés par Claude Code en mode plugin ; leurs copies dans `claude/.claude/agents/` restent synchronisées pour l’installation classique. |
 | `.antigravity-plugin/plugin.json`, `agents/`, `rules/`, `skills/`, `hooks.json`, `scripts/check_delegation.py` | Plugin natif Google Antigravity à la racine du dépôt (`agy plugin install https://github.com/masskrdjn/QuotaOrchestrator` ou `.`). Synchroniser `version` avec les manifestes Codex et Claude Code ; valider via `agy plugin validate .` et sur l'archive via `agy plugin validate --strict`. |
 | `.antigravity-plugin/marketplace.json` et `scripts/build_antigravity_bundle.py` | Catalogue Antigravity (`source.url` HTTPS + `source.sha256`) et empaqueteur `.zip` déterministe. |
-| `README.md`, `README.fr.md` | Documentation utilisateur anglaise et française ; garder version, profils, installation et limites cohérents. |
+| `README.md`, `README.fr.md` | Hub utilisateur multi-plateformes (Codex, Claude Code, Antigravity) en anglais et français ; garder version courante, rôles, installation et liens vers les guides cohérents. |
+| `plugins/quota-orchestrator/codex/README.md`, `README.fr.md` | Guide complet spécifique à Codex (modèles, tarifs, profils de secours, installation manuelle, surcoût mesuré et contrats). |
 | `fixtures/release_*/` | Sources historiques des migrations, à préserver. |
 | `test_install.py`, `test_reconcile.py`, `tests/` | Tests d'installation, de réconciliation, du garde-fou et de distribution. |
 

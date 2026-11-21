@@ -5,6 +5,21 @@ La version courante est définie dans le manifeste du plugin. Voir
 Les fixtures conservent les anciennes sources ; cet historique ne reconstitue
 pas les changements des versions précédentes.
 
+## 0.13.1 — 2026-11-21 (préparée localement)
+
+- Refonte complète des README racine (`README.md`, `README.fr.md`) en un hub
+  multi-plateformes équilibré couvrant Codex, Claude Code et Google Antigravity
+  (tableau comparatif des plateformes, démarrages rapides dédiés, politique
+  commune, correspondance des rôles, limites de sécurité et structure du dépôt).
+- Extraction de la documentation détaillée spécifique à Codex dans
+  `plugins/quota-orchestrator/codex/README.md` et `README.fr.md`, en symétrie
+  avec `plugins/quota-orchestrator/claude/README*.md` et
+  `.antigravity-plugin/README*.md`.
+- Alignement des sous-README (`plugins/quota-orchestrator/README.md`,
+  `.antigravity-plugin/README*.md`, `plugins/quota-orchestrator/claude/README*.md`) :
+  liens croisés entre guides, version courante synchronisée (`0.13.1`) et ajout
+  des sections politique de routage / validation dans le guide Antigravity.
+
 ## 0.13.0 — 2026-11-21 (préparée localement)
 
 - Ajout du support natif Google Antigravity à la racine du dépôt

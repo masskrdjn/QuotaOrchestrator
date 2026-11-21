@@ -1,8 +1,11 @@
 # QuotaOrchestrator for Antigravity (Google Gemini)
 
-[Français](README.fr.md) · [Main repository](../README.md)
+[Français](README.fr.md) · [Repository overview](../README.md) · [Codex guide](../plugins/quota-orchestrator/codex/README.md) · [Claude Code guide](../plugins/quota-orchestrator/claude/README.md)
 
 Selective multi-model routing for **Google Gemini** models in **Google Antigravity** (App, CLI, and IDE). Delegates substantial, well-scoped work to specialized subagents and lower-cost Gemini tiers while keeping decisions, integration, and small local tasks at the primary agent.
+
+> [!IMPORTANT]
+> Current plugin version: **0.13.1**.
 
 ## Prerequisites
 
@@ -34,7 +37,7 @@ Antigravity's `marketplace.json` validator (`agy plugin validate ./.antigravity-
 ```bash
 python scripts/build_antigravity_bundle.py
 python scripts/build_antigravity_bundle.py --check
-agy plugin validate --strict ./dist/quota-orchestrator-antigravity-0.13.0.zip
+agy plugin validate --strict ./dist/quota-orchestrator-antigravity-0.13.1.zip
 ```
 
 Attach the generated `dist/quota-orchestrator-antigravity-<version>.zip` to the matching GitHub Release (`v<version>`), then verify the remote catalog with `agy plugin validate --strict ./.antigravity-plugin/marketplace.json`.
@@ -64,3 +67,22 @@ Attach the generated `dist/quota-orchestrator-antigravity-<version>.zip` to the 
 | `swarm` / CLI | `gemini-4-hydrogen-{low,medium,high,xhigh}` | Structured exploration, research, specified implementation ($1.50 / $7.50 per 1M tokens) |
 | `swarm` / CLI | `gemini-4-neon-{low,medium,high,xhigh}` | Default root, complex engineering, multi-file integration ($3.00 / $15.00 per 1M tokens) |
 | `swarm` / CLI | `gemini-4-argon-{low,medium,high}` | Rare frontier reasoning & `architect` consultations (separate weekly quota pool) |
+
+## Routing policy & safety boundaries
+
+- **Small local work stays at the root**: single-file edits, direct checks, single-source lookups, and tasks with a known entry point do not amortize subagent coordination.
+- **No redundant delegation**: delegating to the same model and effort as the parent is forbidden and blocked by `scripts/check_delegation.py`.
+- **No polling**: after calling `invoke_subagent`, do not poll — wait for the automatic wakeup notification.
+- **Isolated parallel edits**: never let two implementation workers edit the same files concurrently; use disjoint scopes or `workspace: "share"` / `"branch"` in `swarm`.
+- **Read-only boundaries**: `architect` and `strategist` never edit files or delegate; delegated subagents never load the routing skill or spawn further agents.
+- **Never bypass permissions**: do not run Antigravity with `--dangerously-skip-permissions` to defeat role restrictions.
+
+## Validation
+
+From the repository root:
+
+```bash
+python -m unittest tests/antigravity_plugin_test.py
+agy plugin validate .
+python scripts/build_antigravity_bundle.py --check
+```

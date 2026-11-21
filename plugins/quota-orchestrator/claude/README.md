@@ -1,6 +1,6 @@
 # Selective Multi-Model Routing for Claude Code
 
-[Français](README.fr.md) · [Repository and Codex guide](../../../README.md)
+[Français](README.fr.md) · [Repository overview](../../../README.md) · [Codex guide](../codex/README.md) · [Antigravity guide](../../../.antigravity-plugin/README.md)
 
 A Claude Code configuration, installable as a plugin or per project, that
 hands work to specialized roles only when delegation preserves quality while reducing total cost or latency. The
@@ -212,7 +212,7 @@ Things to know:
   this repository's `.claude/settings.json` into `~/.claude/settings.json`.
 - Do not combine the plugin with `install.py` in the same project: the rules
   would load twice and the project's roles would shadow the plugin's.
-- Both host manifests share the same version (**0.12.0**). The marketplace does not duplicate it.
+- All three host manifests (Codex, Claude Code, and Antigravity) share the same version (**0.13.1**). The marketplace does not duplicate it.
 - `.claude/settings.json` contains shared configuration and is intentionally
   tracked by Git. Keep personal settings and secrets in the ignored
   `.claude/settings.local.json`.

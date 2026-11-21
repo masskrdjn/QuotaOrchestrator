@@ -1,6 +1,6 @@
 # Routage sélectif multi-modèles pour Claude Code
 
-[English](README.md) · [Dépôt et guide Codex](../../../README.fr.md)
+[English](README.md) · [Vue d'ensemble du dépôt](../../../README.fr.md) · [Guide Codex](../codex/README.fr.md) · [Guide Antigravity](../../../.antigravity-plugin/README.fr.md)
 
 Une configuration Claude Code, installable en plugin ou par projet, qui confie
 le travail à des rôles spécialisés uniquement quand la délégation préserve la qualité tout en réduisant
@@ -226,7 +226,7 @@ ensuite une nouvelle session, ou lancez `/reload-plugins`.
   `~/.claude/settings.json`.
 - Ne cumulez pas le plugin et `install.py` sur un même projet : les règles
   seraient chargées deux fois et les rôles du projet masqueraient ceux du plugin.
-- Les deux manifestes partagent la même version (**0.12.0**). Le catalogue ne la duplique pas.
+- Les trois manifestes hôtes (Codex, Claude Code et Antigravity) partagent la même version (**0.13.1**). Le catalogue ne la duplique pas.
 - `.claude/settings.json` est une configuration partagée, volontairement suivie
   par Git. Gardez vos réglages personnels et secrets dans
   `.claude/settings.local.json`, qui est ignoré.
