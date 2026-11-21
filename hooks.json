@@ -1,0 +1,27 @@
+{
+  "quota-orchestrator-delegation-guard": {
+    "enabled": true,
+    "PreToolUse": [
+      {
+        "matcher": "invoke_subagent|swarm",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python ./scripts/check_delegation.py",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  },
+  "quota-orchestrator-update-check": {
+    "enabled": true,
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "python ./scripts/check_updates.py",
+        "timeout": 5
+      }
+    ]
+  }
+}

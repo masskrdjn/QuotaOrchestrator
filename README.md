@@ -5,478 +5,101 @@
 To modify this repository, read [CONTRIBUTING.md](CONTRIBUTING.md).
 See [CHANGELOG.md](CHANGELOG.md) for changes.
 
-QuotaOrchestrator is one plugin for Codex and Claude Code. It routes work to specialized agents when delegation can preserve quality while reducing total cost or latency. The primary agent remains responsible for decisions, integration, and user communication.
+> [!IMPORTANT]
+> Current plugin version: **0.15.0**.
+>
+> One repository, three native integrations: **Codex** (OpenAI), **Claude Code** (Anthropic), and **Google Antigravity** (Google Gemini).
 
-This project contains the shared plugin and its local marketplaces. Start with the [Codex quick start](#quick-start) or the [Claude Code installation and migration guide](plugins/quota-orchestrator/claude/README.md#install-as-a-plugin).
+QuotaOrchestrator provides selective multi-model routing plugins for **Codex**, **Claude Code**, and **Google Antigravity**. It delegates substantial, well-scoped work to specialized agents on lower-cost or task-matched model tiers when delegation preserves quality while reducing total cost or latency. The primary agent remains responsible for triage, decisions, integration, and user communication.
+
+## Supported platforms at a glance
+
+| Platform | Model family | Agents / profiles | Hooks & guards | Full guide |
+|---|---|---|---|---|
+| **Codex** | OpenAI GPT-6 Luna, Sol (5.6 / 6 / 6.1 / 6.2), Terra 6.1, Astra 6.2 | 9 standard profiles + 2 optional `_complex` variants | `SessionStart` profile reconciliation + `PreToolUse` delegation guard | [Codex guide](plugins/quota-orchestrator/codex/README.md) ([FR](plugins/quota-orchestrator/codex/README.fr.md)) |
+| **Claude Code** | Anthropic Haiku 5.5, Sonnet 5.5, Opus 5.5, Fable 5.2 | 5 specialized agents (`scout`, `researcher`, `runner`, `builder`, `architect`) | `SessionStart` rule injection + `PostToolUse` observed-identity hook | [Claude Code guide](plugins/quota-orchestrator/claude/README.md) ([FR](plugins/quota-orchestrator/claude/README.fr.md)) |
+| **Google Antigravity** | Google Gemini 3.8 Flash, Gemini 4 Hydrogen, Neon, Argon | 7 native subagents (`invoke_subagent`) + `swarm` / CLI model routing | `PreToolUse` delegation guard + `SessionStart` update checker (2h TTL) | [Antigravity guide](.antigravity-plugin/README.md) ([FR](.antigravity-plugin/README.fr.md)) |
 
 ## Quick start
 
-1. Add the marketplace with `codex plugin marketplace add masskrdjn/QuotaOrchestrator`, then install the plugin with `codex plugin add quota-orchestrator@quota-orchestrator`. From a local checkout, use `codex plugin marketplace add .` for the first command.
-2. When Codex asks, review and trust the bundled SessionStart hook to configure the nine standard global profiles. It requires Python 3.11 or newer available as `python`.
-3. Start a new Codex task to load the profiles. See [Usage](#usage) for how settings and instructions apply. For manual or project-scoped setup, see [Install without the plugin](#install-without-the-plugin).
+All three plugins require **Python 3.11+** available on `PATH` as `python` for their bundled hooks.
 
-QuotaOrchestrator replaces CodexSkills and ClaudeSkills. For Claude Code, follow the [Claude Code migration guide](plugins/quota-orchestrator/claude/README.md#migrate-from-claudeskills).
-
-### Migrate from CodexSkills
-
-If you installed the CodexSkills plugin, remove it and install its successor.
+### Codex
 
 ```sh
-codex plugin remove codexskills@codexskills
-codex plugin marketplace remove codexskills
 codex plugin marketplace add masskrdjn/QuotaOrchestrator
 codex plugin add quota-orchestrator@quota-orchestrator
 ```
 
-Trust the new SessionStart hook and start a new task. The hook migrates recognized profiles with backups and reports customizations it preserves. If you used `install.py`, preview the migration from the new checkout with `python install.py --global --dry-run`. For a project installation, replace `--global` with the project path.
+1. From a local checkout, replace the first command with `codex plugin marketplace add .`.
+2. When Codex prompts you, review and trust the bundled `SessionStart` and `PreToolUse` hooks to configure the nine standard global profiles and enforce the delegation guard.
+3. Open a new Codex task to load the profiles.
 
-## Routing policy
+Migrating from **CodexSkills** or installing manually without the plugin? See the [Codex guide](plugins/quota-orchestrator/codex/README.md#migrate-from-codexskills).
 
-Priorities, in order:
+### Claude Code
 
-1. Preserve result quality and relevance.
-2. Reduce total cost in API dollars (tokens of each type times the model's rate, so more tokens on a cheaper tier is a good trade at equal quality), including coordination and rework.
-3. Reduce latency.
-
-Small, bounded tasks stay with the primary agent. Delegation is used when a clearly scoped role can perform substantial work more efficiently or provide useful independent analysis.
-
-If a child would use the same model and reasoning effort as the primary agent,
-the work stays with the primary agent. This rule takes precedence over all
-delegation criteria, including independent reviews; a different role is
-insufficient, and settings must not be artificially changed to bypass it.
-
-With the same model at higher effort, keep the work at the root by default.
-Delegate for a specific quality or latency need, or when comparable runs
-demonstrate a lower total cost. For Codex implementation, use `builder_luna`
-when the work is fully specified, reliably testable, and within Luna's
-capability. Start with at most one Sol builder. Before adding another, reassess
-the full cost including root coordination and integration, or identify the
-specific quality or latency need.
-
-## Compare models independently of roles
-
-Roles define missions, restrictions, and deliverables. They do not rank models
-or effort levels. Compare the models below for the task; this project establishes
-no universal ranking of quality or token consumption.
-
-| Model | Project candidacy | Boundary to preserve |
-|---|---|---|
-| GPT-6 Luna | Bounded work; `high`, `xhigh`, and `max` are candidates, including well-defined implementation or framing | User floor `high` in named roles and the generic agent. About 20x cheaper than Sol 6.1 per token: see the cost rule. |
-| GPT-6 Sol | Ordinary candidate for technical missions and complex interactions, independently of role | Same quality gate and comparison protocol as Sol 6.1, no proof tied to its age; same rates as 6.1 except cached input, 2x more expensive. |
-| GPT-5.6 Sol | Ordinary candidate for reasoning, framing, and other missions it can fulfill | Same requirements as other Sol models; no compatibility-only exception or presumed inferiority; rate is 2x that of 6.1 (promotional, see the cost rule). |
-| GPT-6.1 Sol | Previous fallback and comparison candidate | Same standard API rates as Sol 6.2. |
-| GPT-6.2 Sol | Fallback for implementation, research, and planning | Compare total cost on equivalent tasks. |
-| GPT-6.1 Terra | Vision through `visual_operator` and clear writing through `writer` | `medium` fallback; `high`/`xhigh` for established difficulty. Half the Sol 6.1 token price; no demonstrated project savings. |
-| GPT-6.2 Astra | An `architect` consultation when extra capacity addresses an identified difficulty | Preserve quota and architect restrictions: no exploration, commands, writing, or delegation. 4x the Sol 6.2 standard API rate for each token type. |
-
-Verify the models and efforts actually available in the runtime. API support
-does not establish Codex availability. Effort names are not equivalent across
-models: Luna `xhigh` does not mean Sol `medium`, nor Sol `xhigh` Astra `low`.
-
-## Choose capacity, then cost
-
-Choose model and effort from contract ambiguity, dependencies and interactions,
-contradictions, validation difficulty, and consequences of error. Batch length,
-file count, and role names are insufficient. Missing evidence needs targeted
-collection, not automatically more effort. This assessment does not authorize
-exploration before the routing decision.
-
-1. **Capacity**: identify admissible combinations that can meet the same quality
-   and relevance criteria, with validation appropriate to the consequences of
-   error. Exclude a combination for an identified limit, not its age; price
-   enters the cost, not admissibility. Keep decisive uncertainty explicit.
-2. **Cost**: among admissible combinations, compare whole-job cost (rates
-   below), including root, children, and reviewers, then latency. Tokens are
-   reported without arbitrating. Without comparable measurements, the choice
-   remains a policy hypothesis, not demonstrated savings or an optimum.
-
-The grid proposes candidates to evaluate. Each Sol means GPT-6 Sol, GPT-5.6
-Sol, GPT-6.1 Sol, and GPT-6.2 Sol under the same admission criteria.
-Proposed efforts depend on session availability.
-
-| Task difficulty and evidence | Candidate combinations | Validation and reclassification trigger |
-|---|---|---|
-| Explicit contract, little ambiguity, direct validation | Luna `high`; each Sol `low`/`medium` | Direct acceptance checks. Small tasks stay at the root by default. |
-| Multiple constrained steps, limited judgment | Luna `high`/`xhigh`; each Sol `medium`/`high` | Check interactions between steps; report decisive ambiguity. |
-| Nontrivial interactions, subtle invariants, competing hypotheses | Luna `high`/`xhigh`/`max` if capacity is admissible; each Sol `medium`/`high`/`xhigh` | Validate invariants and distinguish hypotheses; change model when capacity is the limiting factor. |
-| Contradictory evidence, difficult synthesis, indirect validation | Each Sol `high`/`xhigh`/`max`; Luna `xhigh`/`max` if capacity is admissible | Preserve caveats; reclassify persistent decisive contradictions. |
-| Structural decision, expensive correction, persistent ambiguity | Each Sol `high`/`xhigh`/`max`; Astra consultation at a suitable available effort | Justify additional capacity and preserve the architect context boundary. |
-
-`xhigh` and `max` are candidates to compare, not automatic promotions. Neither
-a researcher role nor low pricing selects `max` automatically. Evaluating `max`
-does not require exhausting all lower efforts first: justify candidacy from
-the task, then measure quality and whole-job cost. Luna fallbacks are `high`,
-including runner and generic; this provisional policy respects the user floor
-without establishing that `high` is optimal. Measure fallback costs on comparable runs. The optional
-scout_complex and researcher_complex profiles are runtime conveniences, not a
-mandatory ranking: the standard variant (Luna) is the default; the complex one
-(Sol 6.2 xhigh, 20x the Luna output rate) requires capacity
-established at framing or an observed limit of the standard variant.
-
-At launch, record role, exact model, effort, supporting facts, hypotheses,
-unknowns, expected validation, and reclassification trigger. Use explicit
-overrides and `fork_turns = "none"` only where supported. If the runtime locks
-the profile, choose an available profile preserving its contract and restrictions;
-otherwise retain the task at the root and disclose the unsupported combination.
-A generic fits only if those guarantees can be preserved. Prompt instructions
-do not replace disabled tools. Never claim an unapplied override. An Astra
-subagent consultation uses a verifiable architect profile exclusively. Preserve
-the user's primary model and effort; the Luna floor applies to subagent
-selections.
-
-The child reports facts invalidating the initial selection; only the root
-reclassifies. Execution difficulty does not automatically justify more capacity.
-Reuse relevant evidence and validation instead of repeating work. Report a
-decisive conceptual difficulty immediately.
-
-### API prices and cost rule
-
-Standard rates (input <= 272K tokens), dollars per million tokens, retrieved
-2026-10-03 for earlier models, from
-https://developers.openai.com/api/docs/pricing (the page carries
-no version: refresh before comparing runs dated otherwise).
-
-| Model | Input | Cached input | Cache write | Output (reasoning included) | Output vs Luna |
-|---|---|---|---|---|---|
-| GPT-6 Luna | 0.10 | 0.01 | 0.125 | 0.50 | 1x |
-| GPT-6 Sol | 2.00 | 0.20 | 2.50 | 10.00 | 20x |
-| GPT-6.1 Sol | 2.00 | 0.10 | 2.50 | 10.00 | 20x |
-| GPT-5.6 Sol | 4.00 | 0.40 | 5.00 | 20.00 | 40x |
-| GPT-6 Astra | 10.00 | 1.00 | 12.50 | 50.00 | 100x |
-| GPT-6.2 Sol | 2.00 | 0.10 | 2.50 | 10.00 | 20x |
-| GPT-6.2 Astra | 8.00 | 0.40 | 10.00 | 40.00 | 80x |
-
-6.2 rates checked on November 17, 2026. Both models accept text and image input,
-produce text output, and support up to 1.05M tokens of context and 128k output
-tokens. API reasoning efforts range from `low` to `max`. OpenAI announced a
-gradual Codex rollout. Check which models and efforts your session can use.
-[Sol 6.2](https://developers.openai.com/api/docs/models/gpt-6.2-sol),
-[Astra 6.2](https://developers.openai.com/api/docs/models/gpt-6.2-astra),
-[OpenAI announcement](https://openai.com/index/introducing-gpt-6-2-astra-sol/).
-
-GPT-5.6 Sol's rate is promotional at least through November 21, 2026. Above 272K
-input tokens a request pays input, cached input, and cache writes at 2x and
-output at 1.5x for the whole request. Fast is 2x, Batch and Flex 0.5x (Ultrafast
-6x, Astra only): compare at the same service tier, since logs do not record it.
-An input token is billed as uncached, cached, or cache write, never cumulatively.
-
-Cost rule: at equal admissible capacity, compare the sum of tokens x rate, not
-tokens. Luna stays cheaper than Sol 6.1 while it consumes fewer than 20x (input,
-output) or 10x (cached) the tokens. Trying a cheaper tier first pays off when
-cost_low + (1 - p) x cost_high < cost_high, that is p > cost_low / cost_high,
-where p is the probability that the low tier suffices and that its insufficiency
-is detected before delivery: without verifiable criteria (return contract), an
-undetected error cannot be recovered and this calculation does not apply.
-Escalate on an identified capacity limit, not as a precaution. Sol 6 (cached 2x)
-and Sol 5.6 (2x the 6.1 rate, 4x cached) win only through measured lower
-consumption: under half the 6.1 tokens for 5.6, at equal quality. Keeping the
-root context under 272K is a benefit of delegation; a full fork to another model
-restarts without cache and may cross the threshold. Astra remains a quota
-constraint on top of cost.
-
-### Official sources and limits
-
-Research supplied by the root, consulted September 29, 2026:
-[selection](https://developers.openai.com/api/docs/guides/model-selection),
-[migration](https://developers.openai.com/api/docs/guides/latest-model),
-[Luna](https://developers.openai.com/api/docs/models/gpt-6-luna),
-[Sol 6](https://developers.openai.com/api/docs/models/gpt-6-sol),
-[Sol 5.6](https://developers.openai.com/api/docs/models/gpt-5.6-sol),
-[Sol 6.1](https://developers.openai.com/api/docs/models/gpt-6.1-sol),
-[Astra](https://developers.openai.com/api/docs/models/gpt-6-astra).
-The model pages position Luna for narrow work, Sol 6.1 for complex work, and
-Astra for demanding tasks. The selection guide recommends testing candidates
-on the same inputs and retaining a setting that meets the quality bar. Sol 6
-pointing to 6.1 does not establish fewer tokens in this repository. API prices
-ground the cost calculation; neither they nor external evaluations demonstrate
-project savings, which remain to be measured. The Luna high floor is a user preference separate from documentation examples. The
-grid remains a hypothesis to validate, not a comparative recommendation proven
-by these sources.
-
-### GPT-6.1 Terra: visual tasks
-
-Terra is a candidate when image understanding or precise computer interaction
-is needed: screenshot inspection, layout validation, and bounded UI workflows.
-The `visual_operator` role does not replace `builder` for design and integration
-or Luna for textual or mechanical work. Prefer sufficient connectors and APIs;
-small actions stay with the primary. Delegation must amortize coordination or
-serve an explicit visual capability need, with an action budget and observable
-stop condition.
-
-| Task | Candidate Terra effort | Condition |
-|---|---|---|
-| Explicit workflow, readable screenshots, direct validation | `medium` (fallback profile) | Observable criteria and available tools |
-| Ambiguous states, multiple visual constraints | `high` | Ambiguity identified before dispatch |
-| Difficult spatial or perceptual reasoning | `xhigh` | Established difficulty and planned validation |
-
-`low` may be evaluated for simple contracts when delegation is justified;
-`max` is not automatic. The API documents `none`, `low`, `medium`, `high`,
-`xhigh`, `max`; this session's runtime also offers `ultra`, absent from the
-API model page. Do not equate these lists. A locked profile stays at `medium`;
-do not claim an unapplied effort override. Select an available profile that
-preserves the contract, or keep the work with the primary.
-
-Sources consulted October 26, 2026:
-[Terra](https://developers.openai.com/api/docs/models/gpt-6.1-terra),
-[Luna](https://developers.openai.com/api/docs/models/gpt-6-luna),
-[Sol 6.1](https://developers.openai.com/api/docs/models/gpt-6.1-sol),
-[changelog](https://developers.openai.com/api/docs/changelog).
-Terra's page highlights vision, computer interaction, and clear writing. This
-does not establish general superiority or this project's cost per accepted
-result. Terra standard prices per million tokens: input $1, cached input $0.05,
-30-minute cache writes $1.25, output including reasoning $5. At equal token
-counts and service level, Terra costs half as much as Sol 6.1, and 10 times Luna
-for input, writes, and output, 5 times Luna for cached reads. Compare full cost
-after validation; token prices alone do not prove savings. Other prices above
-retain their stated observation date; no project benchmark is added here.
-
-
-### GPT-6.1 Terra: clear writing
-
-The `writer` role uses Terra for substantial drafting, rewriting, and synthesis
-from established facts: documentation, explanations, and user-facing text.
-Provide the audience, objective, sources, constraints, and acceptance criteria
-before dispatch. New factual research stays with `researcher`; technical decisions
-stay with the primary or the appropriate role. Small edits stay at the root,
-and Luna remains a candidate when its capacity suffices. The model page's clear
-writing capability supports this candidacy, not demonstrated superiority.
-
-| Writing task | Candidate Terra effort | Validation |
-|---|---|---|
-| Scoped drafting or rewriting for a known audience | `medium` (fallback profile) | Factual fidelity, clarity, tone, and format |
-| Synthesis of established material with delicate nuances or interdependent constraints | `high` if applied by the runtime | Preserve meaning, caveats, numbers, and provenance |
-
-Length alone does not justify `high`, `xhigh`, or `max`. Missing or contradictory
-facts are reported to the primary, never invented. The same effort-override and
-full-cost rules as for `visual_operator` apply. The role does not publish or send
-text to third parties without explicit authorization. This candidacy is based
-on the [Terra model page](https://developers.openai.com/api/docs/models/gpt-6.1-terra),
-consulted October 26, 2026; quality and cost benefits remain unmeasured.
-
-## Measure cost without conflating tokens, price, and quality
-
-This revision measures no savings. A comparison requires
-the same tasks, acceptance criteria, supplied context, tools and permissions,
-validation, and attempt budget. Identify every run, task, scenario, effective
-model/effort, arm, and repetition; pair runs and randomize candidate order.
-Publish cold-cache and warm-cache results separately. Two unpaired complete
-runs cannot support an economic conclusion. Exploratory comparisons require
-at least two complete pairs per task/scenario; this does not replace the
-existing five complete comparable randomized pairs needed to promote a local
-task to cost-driven delegation on cold-cache evidence.
-
-Count the whole job: input context, reasoning, responses, tool exchanges,
-framing, coordination, integration, validation, corrections, and rework,
-including root, children, and reviewers. Tool calls contribute their model
-exchange tokens; do not add their text again to usage counters. When `Reasoning`
-is included in `Output`, total is `Input + Output`, not `Input + Output + Reasoning`.
-When `Cached` is included in `Input`, do not add it again; distinguish
-`Uncached = Input - Cached`. Cache writes are a third input type, billed apart.
-Verify these inclusions in the counter source.
-
-The criterion is API dollars per accepted result: the sum over responses of
-tokens of each type times the model's dated rate (long-context and service-tier
-multipliers included), successes, failures, and reruns included; per complete
-run when no quality verdict exists. Report total and component tokens, latency,
-quality, and success rate separately. Codex credits are not API dollars: the API
-rate is a proxy for a subscription, and the Astra quota remains a separate
-constraint. Include complete successes and failures, corrections, and reruns under
-a rule fixed before execution; do not compare survivors alone. A complete
-failure remains observable. A run with `Complete = false` is exactly
-`non observable`: exclude its tokens and duration from all ratios, medians, and
-economic recommendations; retain its diagnostic and the incomplete-run count.
-Do not create a pair from a surviving run; insufficient admissible pairs mean
-no economic conclusion. Measure `guardian_review` separately and include it in
-the total without describing it as directly controllable. Publish limits of
-representativeness.
-
-## Fallback profiles
-
-These values are fallbacks when the runtime cannot apply an explicit selection. They do not replace the per-task grid or demonstrate optimality. The generic
-subagent also uses Luna `high`. Customized installed settings remain preserved
-with warnings; review them explicitly if they conflict with the Luna floor.
-
-| Role | Fallback model | Fallback effort | Responsibility |
-| --- | --- | --- | --- |
-| Primary | User-selected | Variable | Triage, decisions, integration, and small local tasks |
-| `scout` | `gpt-6-luna` | `high` | Read-only codebase and log exploration |
-| `scout_complex` (optional) | `gpt-6.2-sol` | `xhigh` | Complex causal investigation or review once Sol-level capacity is established (`scout` is the default) |
-| `researcher` | `gpt-6-luna` | `high` | Multi-source external research |
-| `researcher_complex` (optional) | `gpt-6.2-sol` | `xhigh` | Synthesize conflicting sources for an important technical decision (`researcher` is the default) |
-| `runner` | `gpt-6-luna` | `high` | Long validations and large mechanical batches |
-| `builder_luna` | `gpt-6-luna` | `max` | Fully specified substantial implementation with reliable targeted validation |
-| `builder` | `gpt-6.2-sol` | `high` | Implementation requiring design, tradeoffs, or integration, with targeted validation |
-| `visual_operator` | `gpt-6.1-terra` | `medium` | Visual inspection and bounded UI workflows; select `high`/`xhigh` according to difficulty and runtime support |
-| `writer` | `gpt-6.1-terra` | `medium` | Drafting, rewriting, and synthesis from established facts; select `high` according to difficulty and runtime support |
-| `strategist` | `gpt-6.2-sol` | `medium` | Complex framing, decomposition, and intermediate tradeoffs |
-| `architect` | `gpt-6.2-astra` | `low` | Rare, bounded architecture decisions only |
-
-## Project layout
-
-```text
-.
-├── AGENTS.md
-├── .agents/skills/quota-orchestrator/SKILL.md
-├── .agents/plugins/marketplace.json
-├── .claude-plugin/marketplace.json
-├── plugins/quota-orchestrator/
-│   ├── .codex-plugin/plugin.json
-│   ├── hooks/codex-hooks.json, hooks/reconcile.py, hooks/check_delegation.py
-│   ├── .claude-plugin/plugin.json, claude/, agents/
-│   ├── codex-skills/
-│   │   ├── quota-orchestrator/SKILL.md
-│   │   └── quota-orchestrator-setup/SKILL.md
-│   ├── scripts/install.py
-│   └── templates/
-└── .codex/
-    ├── config.toml
-    └── agents/
-        ├── architect.toml
-        ├── builder.toml
-        ├── builder_luna.toml
-        ├── researcher.toml
-        ├── researcher_complex.toml
-        ├── runner.toml
-        ├── scout.toml
-        ├── scout_complex.toml
-        ├── visual_operator.toml
-        ├── writer.toml
-        └── strategist.toml
+```sh
+claude plugin marketplace add masskrdjn/QuotaOrchestrator
+claude plugin install quota-orchestrator@quota-orchestrator
 ```
 
-- `AGENTS.md` defines the repository-wide routing and safety rules.
-- `quota-orchestrator` decides whether delegation is worth its full cost.
-- `.codex/config.toml` selects the primary model and enables multi-agent work.
-- `.codex/agents/*.toml` defines each role's model, tools, limits, and reporting contract.
-- `.agents/plugins/marketplace.json` exposes the repository's Codex catalog.
-- `plugins/quota-orchestrator/` contains the shared plugin manifests and the host-specific components.
-- The measurement tooling behind the numbers quoted below (dated price table, per-response usage exporter, paired-run harness) is local and not versioned. `fixtures/release_0_8_0/` keeps the authentic 0.8.0 files that the installer tests migrate from.
+1. From a local checkout, use `claude plugin marketplace add ./` (or `claude --plugin-dir ./plugins/quota-orchestrator` for a single session without installing).
+2. Start a new session or run `/reload-plugins`.
+3. Plugin components are namespaced as `quota-orchestrator:<role>` and `quota-orchestrator:quota-orchestrator`. On Windows, the `SessionStart` hook requires a POSIX shell (Git Bash).
 
-## Install as a plugin
+Migrating from **ClaudeSkills**, installing per project with `install.py`, or measuring session costs with `extract_claude_jsonl.ps1`? See the [Claude Code guide](plugins/quota-orchestrator/claude/README.md#install-as-a-plugin).
 
-> [!IMPORTANT]
-> Current plugin version: **0.13.0**.
->
-> An approved repository marketplace installs the plugin by default. Codex
-> still asks you to trust its bundled SessionStart hook once. That hook then
-> configures the nine standard global profiles and checks them on later sessions.
+### Google Antigravity
 
-From the local checkout, to test before publishing:
-
-```text
-codex plugin marketplace add .
+```sh
+agy plugin install https://github.com/masskrdjn/QuotaOrchestrator
 ```
 
-When Codex prompts you to review the bundled hook, trust it once if you want
-automatic setup. At SessionStart it runs a local Python 3.11+ script, without
-network access or marketplace upgrades. The script installs and later
-reconciles `scout`, `researcher`, `runner`, `builder_luna`, `builder`,
-`visual_operator`, `writer`, `strategist`, and `architect` in `CODEX_HOME` (or `~/.codex` when unset). It merges compatible
-settings, backs up modified files under `CODEX_HOME/.codexskills-backup/`, and
-preserves divergent files with an actionable warning. State and a short-lived
-concurrency lock live in `PLUGIN_DATA`, or `CODEX_HOME/.codexskills-data` if
-the runtime does not provide it. A failure only defers reconciliation to the
-next session. Start a new Codex task to load newly installed profiles.
+1. From a local checkout, run `agy plugin validate .` then `agy plugin install .` (and `agy plugin list` to verify).
+2. The plugin installs 7 native subagents (`agents/*.md`), always-on routing rules (`rules/AGENTS.md`), the on-demand `quota-orchestrator` skill (`skills/quota-orchestrator/SKILL.md`), and the `PreToolUse` guard (`hooks.json`).
+3. Use `invoke_subagent` for tier-based delegation (`flash_lite`, `flash`, `pro`) and `swarm` or `agy --model` when exact Google Gemini model/effort selection is needed.
 
-If the hook is declined, unavailable, or warns about a conflict, ask Codex to
-"Configure the full QuotaOrchestrator profiles" for a manual preview and recovery.
-The marketplace's default-install policy does not bypass project, plugin, or
-hook trust. Updating the marketplace package is separate: the hook applies
-only the version already installed and never fetches a newer one. On systems
-without a `python` command resolving to Python 3.11+, use the manual setup or
-make that interpreter available before trusting the hook.
+Packaging a release `.zip` bundle or validating the Antigravity catalog? See the [Antigravity guide](.antigravity-plugin/README.md).
 
-The bundled synchronous `PreToolUse` hook checks `spawn_agent` (including
-its `Agent` alias) before creation. It denies an identical model/effort pair
-and denies unresolved settings. It reads the active model from the event,
-the effort from the matching latest `turn_context` in the local transcript,
-and custom profiles from trusted global/project configuration. A custom
-profile must specify both `model` and `model_reasoning_effort`; those settings
-take precedence over explicit spawn settings. Built-in agents require both
-settings and `fork_turns = "none"` explicitly. Live defaults, full-history
-or unspecified forks, partial profiles,
-conflicting definitions, or missing/unreadable context are refused rather
-than guessed. The hook never changes the requested model or effort.
+## Shared routing policy
 
-Review and trust the new hook definition after updating, then open a new
-task. An untrusted or disabled hook cannot protect delegation. This requires
-a Codex release that intercepts `spawn_agent` through `PreToolUse`; see the
-[official hook documentation](https://learn.chatgpt.com/docs/hooks). The
-transcript format is not a stable interface: an incompatible format refuses
-delegation. A Python launch failure, timeout, or runtime path that skips hooks
-is outside this guard's control. This is a delegation guard, not protection
-against an agent deliberately editing or disabling its own configuration.
+Priorities across all three platforms, in order:
 
-Run the offline guard regression suite with
-`python -m unittest discover -s tests -p '*_test.py'`.
-Set `CODEX_GUARD_TEST_BINARY` to the local Codex executable to also run the
-native integration cases. They use a disposable `CODEX_HOME` and loopback
-Responses fixtures, not a real model API. They verify a refused spawn creates
-no child transcript and an allowed child has the expected model and effort.
+1. **Preserve result quality and relevance.**
+2. **Reduce total cost in API dollars** (tokens of each type × the model's rate, including root coordination, integration, and rework — more tokens on a cheaper tier is a good trade at equal quality), while preserving scarce frontier/weekly quotas (Astra, Fable, Argon).
+3. **Reduce latency.**
 
-## Install without the plugin
+Core rules:
 
-Use this QuotaOrchestrator checkout as your starting point, or copy its
-`AGENTS.md`, `.agents/`, and `.codex/` files into an existing project.
+- **Keep small, bounded work at the root.** Local edits, single-source lookups, direct checks, and tasks whose point of entry is already known do not amortize delegation overhead.
+- **Same model and same effort → stay at the root.** This rule takes precedence over every delegation criterion, including independent reviews; a different role name is insufficient and settings must not be altered to bypass it. Codex and Antigravity enforce this via synchronous `PreToolUse` hooks.
+- **Same model at higher effort → stay at the root by default.** Delegate only for a specific quality or latency need, or when comparable runs demonstrate lower total cost.
+- **Lean hot path.** Always-on instructions (`AGENTS.md`, `CLAUDE.md`, `rules/AGENTS.md`) cover everyday triage and standard roles. Load the `quota-orchestrator` skill on demand only for escalations, custom model/effort choices, independent reviews, or cost comparisons.
+- **Delegation transfers execution, not responsibility.** The primary agent reconciles child reports, inspects targeted `path:line` evidence (without re-reading entire files, which would cancel the savings), and never promotes a child's hypothesis into an established fact.
+- **Measure before claiming savings.** Without comparable complete runs, a routing choice is an expected gain, not a demonstrated saving. Incomplete runs (`Complete = false`) are `non observable` and excluded from ratios and economic conclusions.
 
-Alternatively, copy or merge `AGENTS.md`, `.agents/`, and `.codex/` into the root of an existing repository, then review the configuration for that project before trusting it in Codex.
+## Roles across platforms
 
-### Choose the scope: global, project, or both
+| Role | Responsibility | Codex (fallback) | Claude Code | Google Antigravity (`invoke_subagent` / `swarm`) |
+|---|---|---|---|---|
+| **Primary** | Triage, decisions, integration, small local tasks | User-selected | `opus` (`xhigh`) | User-selected (typically `gemini-4-neon-*`) |
+| `runner` | Long validation suites, test matrices, mechanical batches | `gpt-6-luna` (`high`) | `claude-haiku-5-5` (`medium`) | `flash_lite` / `gemini-3.8-flash-*` |
+| `scout` | Read-only codebase & log exploration with `path:line` evidence | `gpt-6-luna` (`high`) | `sonnet` (`medium`) | `flash` / `gemini-4-hydrogen-*` |
+| `researcher` | Multi-source external web & documentation research | `gpt-6-luna` (`high`) | `sonnet` (`medium`) | `flash` / `gemini-4-hydrogen-*` |
+| `builder_luna` / `builder-flash` | Substantial, fully specified, reliably testable implementation | `gpt-6-luna` (`max`) | — (use `builder`) | `flash` / `gemini-4-hydrogen-*` |
+| `builder` | Implementation requiring design, tradeoffs, or delicate integration | `gpt-6.2-sol` (`high`) | `sonnet` (`high`, escalate to `opus`) | `pro` / `gemini-4-neon-*` |
+| `strategist` | Read-only complex framing, decomposition, and specification | `gpt-6.2-sol` (`medium`) | — | `pro` / `gemini-4-neon-*` |
+| `architect` | Rare, bounded architectural decisions on an assembled brief | `gpt-6.2-astra` (`low`) | `opus` (`xhigh`) or `fable` (on confirmed access) | `pro` / `gemini-4-argon-*` |
+| `visual_operator` | Visual inspection and bounded UI workflows | `gpt-6.1-terra` (`medium`) | — | Built-in `browser` subagent |
+| `writer` | Substantial drafting or rewriting from established facts | `gpt-6.1-terra` (`medium`) | — | — |
+| `scout_complex` / `researcher_complex` | Optional high-capacity exploration/synthesis when standard tier is insufficient | `gpt-6.2-sol` (`xhigh`) | — | `swarm` (`gemini-4-neon-*`) |
 
-You do **not** need to copy this entire repository into every project. Choose the placement that matches the rule:
+For full model pricing tables, effort selection grids, escalation gates, and platform-specific details, see the dedicated [Codex](plugins/quota-orchestrator/codex/README.md), [Claude Code](plugins/quota-orchestrator/claude/README.md), and [Antigravity](.antigravity-plugin/README.md) guides.
 
-| Scope | Put here | Use it for |
-| --- | --- | --- |
-| Global | Your Codex home directory (normally `~/.codex/`) | Personal defaults that should apply in every repository. Put shared instructions in `AGENTS.md`, shared settings in `config.toml`, and reusable skills in `skills/`. |
-| Project | The repository root | Rules, settings, skills, and agent roles that belong only to that codebase. Use this repository's `AGENTS.md`, `.agents/`, and `.codex/` layout as the template. |
-| Hybrid (recommended) | Both locations | Keep the routing policy and defaults global; add only project-specific commands, conventions, restrictions, and overrides to the repository. |
+## External delegation (experimental)
 
-Codex loads global instructions first, then the project instructions from the repository root toward the current directory. The closest project file takes precedence. Likewise, `.codex/config.toml` can override user settings, but Codex loads project-local `.codex/` layers only after you trust the project.
-
-Do not put repository-specific commands, credentials, paths, or security exceptions in your global configuration: they would affect every project. When moving this template to `~/.codex/`, merge the relevant settings with your existing files rather than replacing them wholesale.
-
-## Usage
-
-### Inheritance and precedence
-
-Codex builds an instruction chain when it starts:
-
-1. It loads one global file from `~/.codex`: `AGENTS.override.md` if present, otherwise `AGENTS.md`.
-2. It then walks the project from the repository root to the current directory and selects one file per directory: `AGENTS.override.md` first, otherwise `AGENTS.md`.
-3. It concatenates the selected files in that order. Instructions closest to the current directory are therefore read last and take precedence only when they conflict; all other instructions remain active.
-
-If your project already has an `AGENTS.md`, **do not replace it**: keep its contents and add this repository's routing instructions to it. To scope instructions to a subdirectory, place another `AGENTS.md` there. Use `AGENTS.override.md` only when you deliberately want Codex to ignore the `AGENTS.md` in the same directory; the two files are not merged.
-
-For configuration, `~/.codex/config.toml` provides user-level values. Each `.codex/config.toml` in a trusted project adds its own values; for the same key, the project layer closest to the current directory wins, while absent keys remain inherited. Command-line options still have higher precedence. Codex ignores local `.codex/` layers until the project is trusted, and some sensitive keys cannot be overridden at project level.
-
-### Manual installation and recovery
-
-This path is only for installation without the plugin, recovery after declining
-the hook, or explicit testing of the installer. Normal plugin users do not need
-to run this command. It requires Python 3.11 or newer:
-
-```text
-python install.py --global
-```
-
-The global layout is `AGENTS.md`, `config.toml`, `agents/`, and `skills/`
-directly under `CODEX_HOME` (or `~/.codex` if unset). Use `--dry-run` to
-preview every change. The installer upgrades exact matches to previously
-distributed files, backs up modified files under
-`CODEX_HOME/.codexskills-backup/`, and preserves customized files and
-configuration values with warnings. For an explicit project installation, run
-`python install.py path/to/your/project`; omitting the path retains the
-current-directory project behavior.
-To migrate an existing generic subagent default from GPT-5.6 Luna to GPT-6
-Luna, pass `--upgrade-default-model` to both the dry run and install command.
-
-After installation, review any warnings and the model names, approval policy, sandbox mode, and concurrency limit for your environment. Trust the project when Codex asks, then start a new Codex task from that repository so the instruction chain is rebuilt. Project-scoped `.codex/config.toml` is loaded only for trusted projects.
-
-Codex discovers repository instructions from `AGENTS.md`, local skills from `.agents/skills`, and custom agents from `.codex/agents`. See the official documentation for [AGENTS.md](https://developers.openai.com/codex/guides/agents-md), [skills](https://developers.openai.com/codex/skills), [subagents](https://developers.openai.com/codex/subagents), and [configuration](https://developers.openai.com/codex/config-reference).
-
-### External delegation (experimental)
-
-In either host, ask QuotaOrchestrator to use the `external-delegation` skill
+In Codex or Claude Code, ask QuotaOrchestrator to use the `external-delegation` skill
 and name the target CLI and the context it may receive. For example, ask it
 to send an excerpt to Grok Build for analysis. The plugin ships the shared
 helper and requires Python 3.11+ and an installed, authenticated target CLI
@@ -497,93 +120,68 @@ a process argument, so omit secrets.
 
 ## Safety boundaries
 
-- Never run with `--yolo` or `--dangerously-bypass-approvals-and-sandbox`.
-- Parent runtime permission overrides also apply to spawned agents.
-- Do not use `architect` when those overrides would defeat its read-only restrictions.
-- `strategist` prepares the plan but never spawns subagents itself.
-- `architect` does not explore, execute commands, edit files, or delegate.
-- Subagents stay within their assigned role and do not perform routing themselves.
+- **Never bypass permissions or sandboxes:** do not run with `--yolo`, `--dangerously-bypass-approvals-and-sandbox`, `--dangerously-skip-permissions`, or `bypassPermissions`.
+- **Respect read-only roles:** `architect` never explores, runs commands, edits files, or delegates; `strategist` prepares plans without editing or spawning subagents.
+- **No recursive routing:** delegated subagents stay within their mission, do not load the routing skill, and do not delegate further.
+- **No concurrent edits on the same files:** assign disjoint file scopes or isolated workspaces (`workspace: "share"` / `"branch"` in Antigravity `swarm`).
+- **Conditional independent reviews:** never by default; trigger only for security, data loss, irreversible migrations, public contracts, unresolved contradictions, or critical behavior without reliable tests.
 
-## Customization
+## Repository layout
 
-Edit `.codex/config.toml` to change the primary model, defaults, or concurrency. Edit the matching file under `.codex/agents/` to change a role. Keep the role boundaries and model names synchronized with `AGENTS.md` and `quota-orchestrator/SKILL.md`.
+```text
+.
+├── README.md, README.fr.md          # Multi-platform overview (EN / FR)
+├── CONTRIBUTING.md, CHANGELOG.md    # Maintenance, versioning, and release history
+├── AGENTS.md                        # Codex host instructions (synced to templates/)
+├── .agents/
+│   ├── plugins/marketplace.json     # Codex local marketplace catalog
+│   └── skills/quota-orchestrator/   # Local Codex routing skill (FR)
+├── .codex/
+│   ├── config.toml                  # Codex fallback configuration
+│   └── agents/*.toml                # 11 Codex role profiles (9 standard + 2 optional)
+├── .claude-plugin/marketplace.json  # Claude Code marketplace catalog
+├── .antigravity-plugin/
+│   ├── plugin.json, marketplace.json # Native Google Antigravity manifest & catalog
+│   └── README.md, README.fr.md      # Antigravity guide (EN / FR)
+├── agents/*.md                      # 7 native Antigravity subagents
+├── rules/AGENTS.md                  # Always-on Antigravity routing rules
+├── skills/quota-orchestrator/       # On-demand Antigravity Gemini routing skill
+├── hooks.json, assets/logo.png      # Antigravity PreToolUse hook config & icon
+├── scripts/
+│   ├── check_delegation.py          # Antigravity PreToolUse delegation guard
+│   ├── check_updates.py             # Antigravity SessionStart update checker (2h TTL)
+│   └── build_antigravity_bundle.py  # Deterministic .zip packager & sha256 checker
+├── plugins/quota-orchestrator/      # Shared Codex & Claude Code plugin package
+│   ├── README.md                    # Shared package summary
+│   ├── .codex-plugin/plugin.json    # Codex plugin manifest
+│   ├── .claude-plugin/plugin.json   # Claude Code plugin manifest
+│   ├── codex/README.md, README.fr.md # Full Codex guide (EN / FR)
+│   ├── codex-skills/                # Codex plugin skills (routing + setup)
+│   ├── hooks/                       # Codex SessionStart reconciliation & PreToolUse guard
+│   ├── scripts/install.py           # Bundled Codex installer
+│   ├── templates/                   # Synced copies of root AGENTS.md, .codex/, .agents/
+│   ├── agents/*.md                  # 5 Claude Code plugin agents
+│   └── claude/                      # Claude Code guide, skill, hooks, installer, tests, JSONL cost tool
+├── fixtures/release_*/              # Authentic historical release files for migration tests
+└── tests/, test_install.py, test_reconcile.py
+```
 
-Model availability depends on your Codex account and environment.
+The root layout lets Google Antigravity install directly from the repository URL (`agy plugin install https://github.com/masskrdjn/QuotaOrchestrator`) without a subpath, while keeping Codex and Claude Code cleanly isolated inside `plugins/quota-orchestrator/` with zero component collisions.
 
-## Measured overhead and the lean hot path
+## Validation
 
-A first paired benchmark (15 runs, Astra root, cold cache, run with a local
-harness that is not versioned) showed that the previous routing cost more than the root
-alone on every task of that size. Reading a 32 KB skill at the start of every task
-(its description said "apply automatically") plus an 11 KB `AGENTS.md` added about
-$0.2 per run: the run that only executes the test suite cost $0.12 alone and
-$0.33 routed. Every coordination request (spawn, wait, list, message) re-reads
-about 30K cached tokens at the root's rate, while the scout itself cost under
-$0.01 (Luna): the bill is the root's. These are single-repetition observations,
-not a demonstrated result.
+Python 3.11+ is required. From the repository root:
 
-The routing path was therefore reduced, and the effect is predicted, not yet
-measured:
+```sh
+python -m unittest discover -s tests -p '*_test.py'
+python test_install.py
+python test_reconcile.py
+agy plugin validate .
+python scripts/build_antigravity_bundle.py --check
+```
 
-- `AGENTS.md` (about 5 KB) carries everything everyday triage and standard
-  delegation need: what stays at the root, when `scout`, `researcher`, `runner`,
-  `builder_luna`, or `builder` apply, a short handoff, a single long `wait_agent`, and targeted
-  acceptance reads (a wider re-read is a redo and cancels the substitution).
-- The skill is read on demand only: model or effort outside the profiles,
-  `_complex` variants, `strategist`, `architect`, independent review, cost
-  measurement, or a missing profile. Its description no longer says
-  "automatically" or "every task", and `AGENTS.md` stays under 6 KB because it
-  is paid on every request of every agent.
-- A `scout` is worth its coordination only for a wide exploration (about eight
-  files or 60 KB; measured to pay for an exhaustive read-only audit: 34 %, 41 %
-  and 42 % cheaper at 8, 16 and 48 files, with a latency 2.5 to 3.5 times
-  longer); smaller reviews and traces stay at the root.
-- Waiting for a child is configured, not only requested. A wide audit run (T6) showed the root
-  polling with `wait_agent` every 60 seconds, four times, although the instruction asked for one
-  long wait: each poll is a full root request, together a quarter of the root's cost. `config.toml`
-  now carries `[features.multi_agent_v2]` with a five-minute floor (`min_wait_timeout_ms` and
-  `default_wait_timeout_ms` at 300000, `max_wait_timeout_ms` at 3600000), and `AGENTS.md` names the
-  value. `wait_agent` still returns as soon as the child answers, so the floor removes polls, not
-  progress. Codex refuses to load a configuration unless `min <= default <= max`, so the installer
-  adds the three keys only as a group, only when the user has none of them, and never when the user
-  already defines `multi_agent_v2` another way (a boolean flag, an inline table); it then says why.
-- Scout and researcher reports are capped at about 400 words, because they enter
-  the root's context at the root's rate. Review mode also checks edge cases (empty
-  input, `None` or zero, bounds, division, swallowed errors) after both delegated
-  reviews of the benchmark missed an empty-list defect that the root alone found.
+For Claude Code manifest and script validation (`claude plugin validate`, `test_plugin.py`, `test_agent_identity.py`, `test_extract_claude_jsonl.py`), see the [Claude Code validation section](plugins/quota-orchestrator/claude/README.md#update-and-validate-a-release). For Codex native guard integration tests (`CODEX_GUARD_TEST_BINARY`), see the [Codex plugin section](plugins/quota-orchestrator/codex/README.md#install-as-a-plugin).
 
-## 0.8.1 contracts and distribution
+## License
 
-Cost is the criterion: API dollars per accepted result, computed per response
-from the dated API prices (cache, cache writes, the long-context surcharge above 272K
-input tokens, and the service tier). More tokens on a cheaper tier is a good
-trade; a candidate that costs less passes the measurement gate even if it uses
-more tokens. Keep the price tables in both skills and both READMEs equal to
-each other and to the dated prices they cite.
-
-Delegation transfers execution, not responsibility for closure. Each criterion
-returns verified, failed, or not verified, with evidence and analyzed state;
-the root reconciles the results, examines the final diff and performs necessary
-acceptance checks. Builder/runner require test-runner completion evidence in
-addition to exit code; code 0 alone means validation not established. Scout
-distinguishes causal investigation (the default) from review of all assigned
-axes. Architect restrictions apply to the consultant, not a user-selected Astra
-root; announced model, configuration and attested execution are distinct.
-Independent review remains conditional, with an explicit root decision when a
-listed risk is affected.
-
-Distribution reference: `plugins/quota-orchestrator/templates/AGENTS.md`,
-`templates/.codex/config.toml`, `templates/.codex/agents/*.toml`, and
-`templates/.agents/skills/quota-orchestrator/SKILL.md` (under `plugins/quota-orchestrator/`).
-Update their root copies together with the English skill and fallbacks in
-`plugins/quota-orchestrator/codex-skills/quota-orchestrator/SKILL.md`, both installers
-`install.py` and `plugins/quota-orchestrator/scripts/install.py`, the plugin manifest,
-and French/English READMEs. Local copies and templates must match after
-line-ending normalization.
-
-Authentic 0.8.0 contents, raw and normalized fingerprints, and the managed
-AGENTS block are preserved in `fixtures/release_0_8_0/`. Official profiles migrate
-with backups; customizations remain intact with warnings. Update the installed
-package, then open a new task. SessionStart reconciles only that installed
-package, without downloads or runtime mission validation. Plugin consistency
-is tested; model compliance with the contracts is not automatically guaranteed.
+Licensed under the [MIT License](LICENSE).

@@ -1,0 +1,27 @@
+{
+  "$schema": "https://antigravity.google/schemas/v1/plugin.json",
+  "name": "quota-orchestrator",
+  "displayName": "QuotaOrchestrator",
+  "version": "0.15.0",
+  "description": "Selective multi-model routing for Google Gemini models in Antigravity, with specialized subagents, routing rules, and a PreToolUse delegation guard.",
+  "logo": "assets/logo.png",
+  "suggestedPrompts": [
+    "Audit this repository's routing setup and explain which Gemini tier fits my current task",
+    "Explore how authentication flows across the codebase using the scout subagent",
+    "Run the full test suite and report only failing commands and root errors"
+  ],
+  "author": {
+    "name": "masskrdjn",
+    "url": "https://github.com/masskrdjn"
+  },
+  "homepage": "https://github.com/masskrdjn/QuotaOrchestrator",
+  "repository": "https://github.com/masskrdjn/QuotaOrchestrator",
+  "license": "MIT",
+  "keywords": [
+    "antigravity",
+    "gemini",
+    "routing",
+    "subagents",
+    "cost-optimization"
+  ]
+}

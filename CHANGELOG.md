@@ -5,11 +5,59 @@ La version courante est définie dans le manifeste du plugin. Voir
 Les fixtures conservent les anciennes sources ; cet historique ne reconstitue
 pas les changements des versions précédentes.
 
-## 0.13.0 — 2026-11-21
+## 0.15.0 — 2026-11-21
 
 - Codex et Claude Code embarquent une délégation externe facultative vers
   Claude Code, Grok Build ou Antigravity. Le script commun transmet une
   mission écrite et retourne une réponse ou un échec en JSON.
+
+## 0.14.0 — 2026-11-21 (préparée localement)
+
+- Ajout d'un hook `SessionStart` pour Google Antigravity (`hooks.json` et
+  `scripts/check_updates.py`) vérifiant la disponibilité d'une version plus
+  récente de QuotaOrchestrator sur GitHub avec un cache TTL de **2 heures**
+  (timeout réseau de 2 s, fail-open hors-ligne, notification non bloquante via
+  `systemMessage`, désactivable avec `QUOTA_ORCHESTRATOR_DISABLE_UPDATE_CHECK=1`).
+- Intégration de `scripts/check_updates.py` dans l'archive déterministe
+  Antigravity (`scripts/build_antigravity_bundle.py`) et ajout de la suite de
+  tests hors-ligne `AntigravityUpdateCheckTest` dans
+  `tests/antigravity_plugin_test.py`.
+
+## 0.13.1 — 2026-11-21 (préparée localement)
+
+- Refonte complète des README racine (`README.md`, `README.fr.md`) en un hub
+  multi-plateformes équilibré couvrant Codex, Claude Code et Google Antigravity
+  (tableau comparatif des plateformes, démarrages rapides dédiés, politique
+  commune, correspondance des rôles, limites de sécurité et structure du dépôt).
+- Extraction de la documentation détaillée spécifique à Codex dans
+  `plugins/quota-orchestrator/codex/README.md` et `README.fr.md`, en symétrie
+  avec `plugins/quota-orchestrator/claude/README*.md` et
+  `.antigravity-plugin/README*.md`.
+- Alignement des sous-README (`plugins/quota-orchestrator/README.md`,
+  `.antigravity-plugin/README*.md`, `plugins/quota-orchestrator/claude/README*.md`) :
+  liens croisés entre guides, version courante synchronisée (`0.13.1`) et ajout
+  des sections politique de routage / validation dans le guide Antigravity.
+
+## 0.13.0 — 2026-11-21 (préparée localement)
+
+- Ajout du support natif Google Antigravity à la racine du dépôt
+  (`.antigravity-plugin/plugin.json`, `agents/`, `rules/`, `skills/`,
+  `hooks.json`, `assets/logo.png`, documentation bilingue `.antigravity-plugin/README*.md`),
+  permettant l'installation directe par `agy plugin install https://github.com/masskrdjn/QuotaOrchestrator`
+  ou `agy plugin install .` sans sous-chemin ni collision avec Codex ou Claude Code.
+- Orchestration complète des modèles Google Gemini dans Antigravity :
+  sept sous-agents natifs (`runner` sur `flash_lite` ; `scout`, `researcher` et
+  `builder-flash` sur `flash` ; `builder`, `strategist` et `architect` sur
+  `pro`), règles toujours actives (`rules/AGENTS.md`) et skill à la demande
+  (`skills/quota-orchestrator/SKILL.md`) couvrant `gemini-3.8-flash-*`,
+  `gemini-4-hydrogen-*`, `gemini-4-neon-*` et `gemini-4-argon-*` pour `swarm`
+  et `agy --model`.
+- Ajout d'un garde-fou `PreToolUse` (`hooks.json` et `scripts/check_delegation.py`)
+  refusant les délégations redondantes au même modèle et même effort que la
+  racine sur `invoke_subagent` et `swarm`, ainsi que la suite de tests
+  `tests/antigravity_plugin_test.py`, le catalogue `.antigravity-plugin/marketplace.json`
+  (`source.url` HTTPS + `source.sha256`) et le script d'empaquetage déterministe
+  `scripts/build_antigravity_bundle.py`.
 
 ## 0.12.0 — 2026-11-20
 

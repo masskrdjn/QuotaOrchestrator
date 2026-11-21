@@ -7,6 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / 'plugins/quota-orchestrator'
+ANTIGRAVITY_PLUGIN = ROOT
 TEMPLATES = PLUGIN / 'templates'
 
 
@@ -20,9 +21,12 @@ class Distribution(unittest.TestCase):
         self.assertEqual((ROOT / claude_entry['source']).resolve(), PLUGIN)
         codex = json.loads((PLUGIN / '.codex-plugin/plugin.json').read_text(encoding='utf-8'))
         claude = json.loads((PLUGIN / '.claude-plugin/plugin.json').read_text(encoding='utf-8'))
+        antigravity = json.loads((ANTIGRAVITY_PLUGIN / '.antigravity-plugin/plugin.json').read_text(encoding='utf-8'))
         self.assertEqual(codex['name'], codex_entry['name'])
         self.assertEqual(claude['name'], claude_entry['name'])
+        self.assertEqual(antigravity['name'], codex['name'])
         self.assertEqual(codex['version'], claude['version'])
+        self.assertEqual(codex['version'], antigravity['version'])
 
         for path in ('skills', 'hooks/hooks.json', 'CLAUDE.md', 'AGENTS.md'):
             self.assertFalse((PLUGIN / path).exists(), f'Implicitly loaded component: {path}')

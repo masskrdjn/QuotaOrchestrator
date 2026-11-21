@@ -1,0 +1,20 @@
+{
+  "name": "quota-orchestrator",
+  "description": "Selective multi-model routing for Google Gemini models in Antigravity.",
+  "owner": {
+    "name": "masskrdjn",
+    "url": "https://github.com/masskrdjn"
+  },
+  "plugins": [
+    {
+      "name": "quota-orchestrator",
+      "description": "Selective multi-model routing for Google Gemini models in Antigravity, with seven subagents, routing rules, skill, and a PreToolUse delegation guard.",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/masskrdjn/QuotaOrchestrator/releases/download/v0.15.0/quota-orchestrator-antigravity-0.15.0.zip",
+        "sha256": "bbb0340e39bc601672c3a22ed538c1531576ba379d72811692754062351d8f1f"
+      },
+      "category": "productivity"
+    }
+  ]
+}

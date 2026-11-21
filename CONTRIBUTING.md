@@ -9,7 +9,8 @@ Chaque évolution livrable, y compris une correction, une documentation ou une
 modification des consignes, doit augmenter la version sans attendre une demande
 de l'utilisateur. La source de vérité est le champ `version` de
 `plugins/quota-orchestrator/.codex-plugin/plugin.json`; le même numéro doit
-figurer dans `plugins/quota-orchestrator/.claude-plugin/plugin.json`.
+figurer dans `plugins/quota-orchestrator/.claude-plugin/plugin.json` et dans
+`.antigravity-plugin/plugin.json`.
 
 - **PATCH** : correction compatible, documentation ou maintenance sans nouvelle
   capacité. Exemple : `0.9.0` → `0.9.1`.
@@ -54,7 +55,10 @@ créer un tag au seul motif que la version a changé.
 | `.claude-plugin/marketplace.json` et `plugins/quota-orchestrator/.claude-plugin/plugin.json` | Catalogue Claude Code et manifeste du paquet commun ; synchroniser son nom et sa version avec le manifeste Codex. |
 | `plugins/quota-orchestrator/claude/` | Skill, hook, réglages, installateur classique, tests, documentation et outils de mesure Claude Code. Garder les composants Codex hors des emplacements découverts par défaut par Claude Code. |
 | `plugins/quota-orchestrator/agents/` | Cinq agents chargés par Claude Code en mode plugin ; leurs copies dans `claude/.claude/agents/` restent synchronisées pour l’installation classique. |
-| `README.md`, `README.fr.md` | Documentation utilisateur anglaise et française ; garder version, profils, installation et limites cohérents. |
+| `.antigravity-plugin/plugin.json`, `agents/`, `rules/`, `skills/`, `hooks.json`, `scripts/check_delegation.py`, `scripts/check_updates.py` | Plugin natif Google Antigravity à la racine du dépôt (`agy plugin install https://github.com/masskrdjn/QuotaOrchestrator` ou `.`). Synchroniser `version` avec les manifestes Codex et Claude Code ; valider via `agy plugin validate .` et sur l'archive via `agy plugin validate --strict`. |
+| `.antigravity-plugin/marketplace.json` et `scripts/build_antigravity_bundle.py` | Catalogue Antigravity (`source.url` HTTPS + `source.sha256`) et empaqueteur `.zip` déterministe. |
+| `README.md`, `README.fr.md` | Hub utilisateur multi-plateformes (Codex, Claude Code, Antigravity) en anglais et français ; garder version courante, rôles, installation et liens vers les guides cohérents. |
+| `plugins/quota-orchestrator/codex/README.md`, `README.fr.md` | Guide complet spécifique à Codex (modèles, tarifs, profils de secours, installation manuelle, surcoût mesuré et contrats). |
 | `fixtures/release_*/` | Sources historiques des migrations, à préserver. |
 | `test_install.py`, `test_reconcile.py`, `tests/` | Tests d'installation, de réconciliation, du garde-fou et de distribution. |
 
@@ -112,6 +116,8 @@ Python 3.11 ou supérieur est requis. Depuis la racine :
 python -m unittest discover -s tests -p '*_test.py'
 python test_install.py
 python test_reconcile.py
+agy plugin validate .
+python scripts/build_antigravity_bundle.py --check
 git diff --check
 ```
 
