@@ -7,7 +7,7 @@ See [CHANGELOG.md](CHANGELOG.md) for changes.
 
 QuotaOrchestrator provides multi-model routing plugins for Codex, Claude Code, and Google Antigravity. It routes work to specialized agents when delegation can preserve quality while reducing total cost or latency. The primary agent remains responsible for decisions, integration, and user communication.
 
-This project contains the shared Codex/Claude Code plugin, the native Antigravity plugin (`plugins/quota-orchestrator-antigravity`), and their local catalogs. Start with the [Codex quick start](#quick-start), the [Claude Code installation and migration guide](plugins/quota-orchestrator/claude/README.md#install-as-a-plugin), or the [Antigravity (Google Gemini) guide](plugins/quota-orchestrator-antigravity/README.md).
+This project contains the shared Codex/Claude Code plugin, the native Antigravity plugin at the repository root (`.antigravity-plugin/plugin.json`), and their local catalogs. Start with the [Codex quick start](#quick-start), the [Claude Code installation and migration guide](plugins/quota-orchestrator/claude/README.md#install-as-a-plugin), or the [Antigravity (Google Gemini) guide](.antigravity-plugin/README.md) (`agy plugin install https://github.com/masskrdjn/QuotaOrchestrator`).
 
 ## Quick start
 
@@ -317,10 +317,18 @@ with warnings; review them explicitly if they conflict with the Luna floor.
 .
 ├── AGENTS.md
 ├── .agents/skills/quota-orchestrator/SKILL.md
-├── .agents/plugins.json
 ├── .agents/plugins/marketplace.json
-├── .antigravity-plugin/marketplace.json
+├── .antigravity-plugin/
+│   ├── plugin.json, marketplace.json
+│   └── README.md, README.fr.md
 ├── .claude-plugin/marketplace.json
+├── agents/                      # Seven native Antigravity subagents
+├── rules/AGENTS.md              # Always-on Antigravity routing rules
+├── skills/quota-orchestrator/SKILL.md
+├── hooks.json, assets/logo.png
+├── scripts/
+│   ├── check_delegation.py      # Antigravity PreToolUse guard
+│   └── build_antigravity_bundle.py
 ├── plugins/quota-orchestrator/
 │   ├── .codex-plugin/plugin.json
 │   ├── hooks/codex-hooks.json, hooks/reconcile.py, hooks/check_delegation.py
@@ -330,11 +338,6 @@ with warnings; review them explicitly if they conflict with the Luna floor.
 │   │   └── quota-orchestrator-setup/SKILL.md
 │   ├── scripts/install.py
 │   └── templates/
-├── plugins/quota-orchestrator-antigravity/
-│   ├── .antigravity-plugin/plugin.json, assets/logo.png
-│   ├── agents/*.md, rules/AGENTS.md, skills/quota-orchestrator/SKILL.md
-│   └── hooks.json, scripts/check_delegation.py
-├── scripts/build_antigravity_bundle.py
 └── .codex/
     ├── config.toml
     └── agents/
@@ -357,7 +360,7 @@ with warnings; review them explicitly if they conflict with the Luna floor.
 - `.codex/agents/*.toml` defines each role's model, tools, limits, and reporting contract.
 - `.agents/plugins/marketplace.json` exposes the repository's Codex catalog.
 - `plugins/quota-orchestrator/` contains the shared Codex and Claude Code plugin manifests and host-specific components.
-- `plugins/quota-orchestrator-antigravity/` is the native Google Antigravity plugin (kept separate to avoid colliding with Claude Code's `agents/`). `.agents/plugins.json` enables workspace discovery, `.antigravity-plugin/marketplace.json` indexes the pinned release archive, and `scripts/build_antigravity_bundle.py` builds and checks that archive's SHA-256.
+- `.antigravity-plugin/plugin.json`, `agents/`, `rules/`, `skills/`, `hooks.json`, `assets/logo.png`, and `scripts/check_delegation.py` form the native Google Antigravity plugin at the repository root (so `agy plugin install https://github.com/masskrdjn/QuotaOrchestrator` and `agy plugin install .` work directly without a subpath, with zero collision with Claude Code's `plugins/quota-orchestrator/agents/`). `.antigravity-plugin/marketplace.json` indexes the pinned release archive built and checked by `scripts/build_antigravity_bundle.py`.
 - The measurement tooling behind the numbers quoted below (dated price table, per-response usage exporter, paired-run harness) is local and not versioned. `fixtures/release_0_8_0/` keeps the authentic 0.8.0 files that the installer tests migrate from.
 
 ## Install as a plugin

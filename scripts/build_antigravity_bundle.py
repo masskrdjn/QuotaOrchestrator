@@ -18,12 +18,26 @@ import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-PLUGIN_DIR = ROOT / "plugins/quota-orchestrator-antigravity"
-MANIFEST_PATH = PLUGIN_DIR / ".antigravity-plugin/plugin.json"
+MANIFEST_PATH = ROOT / ".antigravity-plugin/plugin.json"
 MARKETPLACE_PATH = ROOT / ".antigravity-plugin/marketplace.json"
 DIST_DIR = ROOT / "dist"
 DEFAULT_RELEASE_BASE = "https://github.com/masskrdjn/QuotaOrchestrator/releases/download"
 FIXED_ZIP_TIME = (2026, 1, 1, 0, 0, 0)
+
+# Exact files and directories bundled into the standalone Antigravity .zip release.
+BUNDLE_FILES = (
+    ".antigravity-plugin/plugin.json",
+    ".antigravity-plugin/README.md",
+    ".antigravity-plugin/README.fr.md",
+    "hooks.json",
+    "scripts/check_delegation.py",
+)
+BUNDLE_DIRS = (
+    "assets",
+    "agents",
+    "rules",
+    "skills",
+)
 
 
 def read_manifest() -> dict:
@@ -34,16 +48,31 @@ def default_bundle_url(version: str) -> str:
     return f"{DEFAULT_RELEASE_BASE}/v{version}/quota-orchestrator-antigravity-{version}.zip"
 
 
-def build_zip_bytes(plugin_dir: Path = PLUGIN_DIR) -> bytes:
-    """Create a reproducible zip archive of the Antigravity plugin."""
-    buffer = io.BytesIO()
-    with zipfile.ZipFile(buffer, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zf:
-        for path in sorted(plugin_dir.rglob("*")):
+def collect_bundle_paths(root: Path = ROOT) -> list[Path]:
+    paths: list[Path] = []
+    for rel in BUNDLE_FILES:
+        path = root / rel
+        if path.is_file():
+            paths.append(path)
+    for rel_dir in BUNDLE_DIRS:
+        directory = root / rel_dir
+        if not directory.is_dir():
+            continue
+        for path in directory.rglob("*"):
             if not path.is_file():
                 continue
             if "__pycache__" in path.parts or path.suffix in {".pyc", ".pyo"}:
                 continue
-            rel = path.relative_to(plugin_dir).as_posix()
+            paths.append(path)
+    return sorted(set(paths), key=lambda p: p.relative_to(root).as_posix())
+
+
+def build_zip_bytes(root: Path = ROOT) -> bytes:
+    """Create a reproducible zip archive of the Antigravity plugin."""
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zf:
+        for path in collect_bundle_paths(root):
+            rel = path.relative_to(root).as_posix()
             info = zipfile.ZipInfo(filename=rel, date_time=FIXED_ZIP_TIME)
             info.compress_type = zipfile.ZIP_DEFLATED
             mode = 0o755 if rel.startswith("scripts/") else 0o644
@@ -69,7 +98,7 @@ def main(argv: list[str] | None = None) -> int:
     manifest = read_manifest()
     version = manifest["version"]
     url = args.url or default_bundle_url(version)
-    archive_bytes = build_zip_bytes(PLUGIN_DIR)
+    archive_bytes = build_zip_bytes(ROOT)
     digest = sha256_hex(archive_bytes)
 
     if args.check:

@@ -12,8 +12,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-AGY_PLUGIN = ROOT / "plugins/quota-orchestrator-antigravity"
-GUARD_PATH = AGY_PLUGIN / "scripts/check_delegation.py"
+GUARD_PATH = ROOT / "scripts/check_delegation.py"
 BUILDER_PATH = ROOT / "scripts/build_antigravity_bundle.py"
 
 EXPECTED_AGENTS = {
@@ -27,8 +26,8 @@ EXPECTED_AGENTS = {
 }
 
 
-def load_guard():
-    spec = importlib.util.spec_from_file_location("agy_check_delegation", GUARD_PATH)
+def load_module(name: str, path: Path):
+    spec = importlib.util.spec_from_file_location(name, path)
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
     spec.loader.exec_module(module)
@@ -37,19 +36,19 @@ def load_guard():
 
 class AntigravityPluginTest(unittest.TestCase):
     def test_manifest_and_components(self):
-        manifest = json.loads((AGY_PLUGIN / ".antigravity-plugin/plugin.json").read_text(encoding="utf-8"))
+        manifest = json.loads((ROOT / ".antigravity-plugin/plugin.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["name"], "quota-orchestrator")
         self.assertEqual(manifest["displayName"], "QuotaOrchestrator")
         self.assertRegex(manifest["version"], r"^\d+\.\d+\.\d+$")
-        self.assertTrue((AGY_PLUGIN / manifest["logo"]).is_file())
+        self.assertTrue((ROOT / manifest["logo"]).is_file())
         self.assertLessEqual(len(manifest["suggestedPrompts"]), 3)
-        self.assertTrue((AGY_PLUGIN / "rules/AGENTS.md").is_file())
-        self.assertTrue((AGY_PLUGIN / "skills/quota-orchestrator/SKILL.md").is_file())
-        self.assertTrue((AGY_PLUGIN / "hooks.json").is_file())
+        self.assertTrue((ROOT / "rules/AGENTS.md").is_file())
+        self.assertTrue((ROOT / "skills/quota-orchestrator/SKILL.md").is_file())
+        self.assertTrue((ROOT / "hooks.json").is_file())
         self.assertTrue(GUARD_PATH.is_file())
 
     def test_agents_frontmatter(self):
-        agent_files = sorted((AGY_PLUGIN / "agents").glob("*.md"))
+        agent_files = sorted((ROOT / "agents").glob("*.md"))
         self.assertEqual({p.stem for p in agent_files}, set(EXPECTED_AGENTS))
         for path in agent_files:
             text = path.read_text(encoding="utf-8")
@@ -66,8 +65,8 @@ class AntigravityPluginTest(unittest.TestCase):
             self.assertRegex(head, r"(?m)^mainAgent:\s*false\s*$", path.name)
             self.assertIn("tools:", head, path.name)
 
-    def test_marketplace_and_workspace_discovery(self):
-        manifest = json.loads((AGY_PLUGIN / ".antigravity-plugin/plugin.json").read_text(encoding="utf-8"))
+    def test_marketplace_bundle_checksum(self):
+        manifest = json.loads((ROOT / ".antigravity-plugin/plugin.json").read_text(encoding="utf-8"))
         mp = json.loads((ROOT / ".antigravity-plugin/marketplace.json").read_text(encoding="utf-8"))
         self.assertEqual(mp["name"], "quota-orchestrator")
         entry, = mp["plugins"]
@@ -77,19 +76,11 @@ class AntigravityPluginTest(unittest.TestCase):
         self.assertIn(manifest["version"], source["url"])
         self.assertRegex(source["sha256"], r"^[0-9a-f]{64}$")
 
-        spec = importlib.util.spec_from_file_location("agy_bundle_builder", BUILDER_PATH)
-        builder = importlib.util.module_from_spec(spec)
-        assert spec.loader is not None
-        spec.loader.exec_module(builder)
-        self.assertEqual(builder.sha256_hex(builder.build_zip_bytes(AGY_PLUGIN)), source["sha256"])
-
-        workspace_plugins = json.loads((ROOT / ".agents/plugins.json").read_text(encoding="utf-8"))
-        entry, = workspace_plugins["entries"]
-        self.assertEqual(entry["path"], "plugins")
-        self.assertEqual(entry["include_only"], ["quota-orchestrator-antigravity"])
+        builder = load_module("agy_bundle_builder", BUILDER_PATH)
+        self.assertEqual(builder.sha256_hex(builder.build_zip_bytes(ROOT)), source["sha256"])
 
     def test_hooks_json_structure(self):
-        hooks = json.loads((AGY_PLUGIN / "hooks.json").read_text(encoding="utf-8"))
+        hooks = json.loads((ROOT / "hooks.json").read_text(encoding="utf-8"))
         guard = hooks["quota-orchestrator-delegation-guard"]
         self.assertTrue(guard["enabled"])
         group, = guard["PreToolUse"]
@@ -98,31 +89,34 @@ class AntigravityPluginTest(unittest.TestCase):
         self.assertEqual(handler["type"], "command")
         self.assertIn("check_delegation.py", handler["command"])
 
-    def test_cli_strict_validation_when_available(self):
+    def test_cli_validation_when_available(self):
         agy = shutil.which("agy")
         if not agy:
             self.skipTest("agy CLI not available on PATH")
+        # Root repo check: 0 errors, only the documented multi-tool warning on root AGENTS.md.
         proc = subprocess.run(
-            [agy, "plugin", "validate", "--strict", "--json", str(AGY_PLUGIN)],
+            [agy, "plugin", "validate", "--json", str(ROOT)],
             capture_output=True,
             text=True,
             check=False,
         )
         self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
         report = json.loads(proc.stdout)
-        self.assertEqual(report["findings"], [])
+        unexpected = [
+            f for f in report["findings"]
+            if f["severity"] == "error" or (f["severity"] == "warning" and f.get("file") != "AGENTS.md")
+        ]
+        self.assertEqual(unexpected, [], report["findings"])
         self.assertEqual(report["components"]["agents"], len(EXPECTED_AGENTS))
         self.assertEqual(report["components"]["skills"], 1)
         self.assertEqual(report["components"]["rules"], 1)
         self.assertEqual(report["components"]["hooks"], 1)
 
-        spec = importlib.util.spec_from_file_location("agy_bundle_builder", BUILDER_PATH)
-        builder = importlib.util.module_from_spec(spec)
-        assert spec.loader is not None
-        spec.loader.exec_module(builder)
+        # Standalone .zip bundle check: strict validation with 0 findings.
+        builder = load_module("agy_bundle_builder", BUILDER_PATH)
         with tempfile.TemporaryDirectory() as tmp:
             bundle = Path(tmp) / "quota-orchestrator-antigravity.zip"
-            bundle.write_bytes(builder.build_zip_bytes(AGY_PLUGIN))
+            bundle.write_bytes(builder.build_zip_bytes(ROOT))
             zip_proc = subprocess.run(
                 [agy, "plugin", "validate", "--strict", str(bundle)],
                 capture_output=True,
@@ -135,7 +129,7 @@ class AntigravityPluginTest(unittest.TestCase):
 class AntigravityDelegationGuardTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.guard = load_guard()
+        cls.guard = load_module("agy_check_delegation", GUARD_PATH)
 
     def test_invoke_subagent_allows_bundled_tiers_and_browser(self):
         for type_name, model in [

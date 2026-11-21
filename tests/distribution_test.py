@@ -7,7 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / 'plugins/quota-orchestrator'
-ANTIGRAVITY_PLUGIN = ROOT / 'plugins/quota-orchestrator-antigravity'
+ANTIGRAVITY_PLUGIN = ROOT
 TEMPLATES = PLUGIN / 'templates'
 
 

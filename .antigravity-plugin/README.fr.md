@@ -1,6 +1,6 @@
 # QuotaOrchestrator pour Antigravity (Google Gemini)
 
-[English](README.md) · [Dépôt principal](../../README.fr.md)
+[English](README.md) · [Dépôt principal](../README.fr.md)
 
 Routage sélectif multi-modèles pour les modèles **Google Gemini** dans **Google Antigravity** (App, CLI et IDE). Confie les lots substantiels et bornés à des sous-agents spécialisés et à des paliers Gemini moins coûteux, tout en conservant décisions, intégration et petites tâches locales à la racine.
 
@@ -11,21 +11,21 @@ Routage sélectif multi-modèles pour les modèles **Google Gemini** dans **Goog
 
 ## Installation
 
-### Depuis un clone local
-
-```bash
-agy plugin validate --strict ./plugins/quota-orchestrator-antigravity
-agy plugin install ./plugins/quota-orchestrator-antigravity
-agy plugin list
-```
-
-Dans un clone de ce dépôt, `.agents/plugins.json` déclare également `plugins/quota-orchestrator-antigravity` pour la découverte automatique au niveau workspace.
-
 ### Depuis GitHub
 
 ```bash
-agy plugin install https://github.com/masskrdjn/QuotaOrchestrator/tree/main/plugins/quota-orchestrator-antigravity
+agy plugin install https://github.com/masskrdjn/QuotaOrchestrator
 ```
+
+### Depuis un clone local
+
+```bash
+agy plugin validate .
+agy plugin install .
+agy plugin list
+```
+
+> **Note (dépôt multi-outils)** : `agy plugin validate .` signale un avertissement attendu sur le fichier racine `AGENTS.md` (destiné à Codex et aux contributeurs ; Antigravity charge `rules/AGENTS.md`). L'archive `.zip` de release passe `agy plugin validate --strict` sans aucun avertissement.
 
 ### Empaquetage et catalogue Marketplace
 

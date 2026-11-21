@@ -7,10 +7,11 @@ pas les changements des versions précédentes.
 
 ## 0.13.0 — 2026-11-21 (préparée localement)
 
-- Ajout du support natif Google Antigravity dans un paquet dédié
-  `plugins/quota-orchestrator-antigravity/` (validé sans avertissement par
-  `agy plugin validate --strict`) avec manifeste `.antigravity-plugin/plugin.json`,
-  logo, documentation bilingue et découverte workspace `.agents/plugins.json`.
+- Ajout du support natif Google Antigravity à la racine du dépôt
+  (`.antigravity-plugin/plugin.json`, `agents/`, `rules/`, `skills/`,
+  `hooks.json`, `assets/logo.png`, documentation bilingue `.antigravity-plugin/README*.md`),
+  permettant l'installation directe par `agy plugin install https://github.com/masskrdjn/QuotaOrchestrator`
+  ou `agy plugin install .` sans sous-chemin ni collision avec Codex ou Claude Code.
 - Orchestration complète des modèles Google Gemini dans Antigravity :
   sept sous-agents natifs (`runner` sur `flash_lite` ; `scout`, `researcher` et
   `builder-flash` sur `flash` ; `builder`, `strategist` et `architect` sur
