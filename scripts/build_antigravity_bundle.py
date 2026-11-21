@@ -31,6 +31,7 @@ BUNDLE_FILES = (
     ".antigravity-plugin/README.fr.md",
     "hooks.json",
     "scripts/check_delegation.py",
+    "scripts/check_updates.py",
 )
 BUNDLE_DIRS = (
     "assets",

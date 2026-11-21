@@ -13,6 +13,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 GUARD_PATH = ROOT / "scripts/check_delegation.py"
+UPDATER_PATH = ROOT / "scripts/check_updates.py"
 BUILDER_PATH = ROOT / "scripts/build_antigravity_bundle.py"
 
 EXPECTED_AGENTS = {
@@ -46,6 +47,7 @@ class AntigravityPluginTest(unittest.TestCase):
         self.assertTrue((ROOT / "skills/quota-orchestrator/SKILL.md").is_file())
         self.assertTrue((ROOT / "hooks.json").is_file())
         self.assertTrue(GUARD_PATH.is_file())
+        self.assertTrue(UPDATER_PATH.is_file())
 
     def test_agents_frontmatter(self):
         agent_files = sorted((ROOT / "agents").glob("*.md"))
@@ -89,6 +91,12 @@ class AntigravityPluginTest(unittest.TestCase):
         self.assertEqual(handler["type"], "command")
         self.assertIn("check_delegation.py", handler["command"])
 
+        updater = hooks["quota-orchestrator-update-check"]
+        self.assertTrue(updater["enabled"])
+        start_handler, = updater["SessionStart"]
+        self.assertEqual(start_handler["type"], "command")
+        self.assertIn("check_updates.py", start_handler["command"])
+
     def test_cli_validation_when_available(self):
         agy = shutil.which("agy")
         if not agy:
@@ -110,7 +118,7 @@ class AntigravityPluginTest(unittest.TestCase):
         self.assertEqual(report["components"]["agents"], len(EXPECTED_AGENTS))
         self.assertEqual(report["components"]["skills"], 1)
         self.assertEqual(report["components"]["rules"], 1)
-        self.assertEqual(report["components"]["hooks"], 1)
+        self.assertEqual(report["components"]["hooks"], 2)
 
         # Standalone .zip bundle check: strict validation with 0 findings.
         builder = load_module("agy_bundle_builder", BUILDER_PATH)
@@ -188,6 +196,121 @@ class AntigravityDelegationGuardTest(unittest.TestCase):
                     "toolCall": {"name": "swarm", "args": args},
                 })
                 self.assertEqual(res["decision"], "allow")
+
+
+class AntigravityUpdateCheckTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.updater = load_module("agy_check_updates", UPDATER_PATH)
+
+    def test_default_ttl_is_two_hours(self):
+        self.assertEqual(self.updater.DEFAULT_TTL_SECONDS, 7200)
+
+    def test_notifies_on_newer_remote_and_respects_ttl_cache(self):
+        calls: list[str] = []
+
+        def fake_fetch(url: str) -> str:
+            calls.append(url)
+            return "0.15.0"
+
+        with tempfile.TemporaryDirectory() as tmp:
+            cache = Path(tmp) / "update_check.json"
+            res1 = self.updater.check_for_update(
+                local_version="0.14.0",
+                cache_path=cache,
+                now=1000.0,
+                fetcher=fake_fetch,
+            )
+            self.assertEqual(len(calls), 1)
+            self.assertIn("systemMessage", res1)
+            self.assertIn("0.14.0 → 0.15.0", res1["systemMessage"])
+
+            # Within 2-hour TTL: no second network call, still notifies until upgraded.
+            res2 = self.updater.check_for_update(
+                local_version="0.14.0",
+                cache_path=cache,
+                now=1000.0 + 3600.0,
+                fetcher=fake_fetch,
+            )
+            self.assertEqual(len(calls), 1)
+            self.assertIn("systemMessage", res2)
+
+            # Once local version reaches remote version, no notice even inside TTL.
+            res3 = self.updater.check_for_update(
+                local_version="0.15.0",
+                cache_path=cache,
+                now=1000.0 + 3600.0,
+                fetcher=fake_fetch,
+            )
+            self.assertEqual(len(calls), 1)
+            self.assertEqual(res3, {})
+
+            # After 2-hour TTL expires: fetches again.
+            self.updater.check_for_update(
+                local_version="0.15.0",
+                cache_path=cache,
+                now=1000.0 + 7200.0,
+                fetcher=fake_fetch,
+            )
+            self.assertEqual(len(calls), 2)
+
+    def test_up_to_date_and_network_failure_fail_open(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cache_ok = Path(tmp) / "ok.json"
+            res_same = self.updater.check_for_update(
+                local_version="0.14.0",
+                cache_path=cache_ok,
+                now=2000.0,
+                fetcher=lambda _url: "0.14.0",
+            )
+            self.assertEqual(res_same, {})
+
+            calls = 0
+
+            def failing_fetch(_url: str) -> None:
+                nonlocal calls
+                calls += 1
+                return None
+
+            cache_err = Path(tmp) / "err.json"
+            res_err = self.updater.check_for_update(
+                local_version="0.14.0",
+                cache_path=cache_err,
+                now=2000.0,
+                fetcher=failing_fetch,
+            )
+            self.assertEqual(res_err, {})
+            self.assertEqual(calls, 1)
+            # Offline cache prevents repeated timeouts within the 2-hour TTL.
+            self.updater.check_for_update(
+                local_version="0.14.0",
+                cache_path=cache_err,
+                now=2500.0,
+                fetcher=failing_fetch,
+            )
+            self.assertEqual(calls, 1)
+
+    def test_opt_out_env_var_skips_fetch(self):
+        import os
+
+        old = os.environ.get("QUOTA_ORCHESTRATOR_DISABLE_UPDATE_CHECK")
+        os.environ["QUOTA_ORCHESTRATOR_DISABLE_UPDATE_CHECK"] = "1"
+        try:
+            called = False
+
+            def boom(_url: str) -> str:
+                nonlocal called
+                called = True
+                return "9.9.9"
+
+            res = self.updater.check_for_update(local_version="0.14.0", fetcher=boom)
+            self.assertEqual(res, {})
+            self.assertFalse(called)
+        finally:
+            if old is None:
+                os.environ.pop("QUOTA_ORCHESTRATOR_DISABLE_UPDATE_CHECK", None)
+            else:
+                os.environ["QUOTA_ORCHESTRATOR_DISABLE_UPDATE_CHECK"] = old
 
 
 if __name__ == "__main__":

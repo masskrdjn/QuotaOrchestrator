@@ -6,7 +6,7 @@ To modify this repository, read [CONTRIBUTING.md](CONTRIBUTING.md).
 See [CHANGELOG.md](CHANGELOG.md) for changes.
 
 > [!IMPORTANT]
-> Current plugin version: **0.13.1**.
+> Current plugin version: **0.14.0**.
 >
 > One repository, three native integrations: **Codex** (OpenAI), **Claude Code** (Anthropic), and **Google Antigravity** (Google Gemini).
 
@@ -18,7 +18,7 @@ QuotaOrchestrator provides selective multi-model routing plugins for **Codex**, 
 |---|---|---|---|---|
 | **Codex** | OpenAI GPT-6 Luna, Sol (5.6 / 6 / 6.1 / 6.2), Terra 6.1, Astra 6.2 | 9 standard profiles + 2 optional `_complex` variants | `SessionStart` profile reconciliation + `PreToolUse` delegation guard | [Codex guide](plugins/quota-orchestrator/codex/README.md) ([FR](plugins/quota-orchestrator/codex/README.fr.md)) |
 | **Claude Code** | Anthropic Haiku 5.5, Sonnet 5.5, Opus 5.5, Fable 5.2 | 5 specialized agents (`scout`, `researcher`, `runner`, `builder`, `architect`) | `SessionStart` rule injection + `PostToolUse` observed-identity hook | [Claude Code guide](plugins/quota-orchestrator/claude/README.md) ([FR](plugins/quota-orchestrator/claude/README.fr.md)) |
-| **Google Antigravity** | Google Gemini 3.8 Flash, Gemini 4 Hydrogen, Neon, Argon | 7 native subagents (`invoke_subagent`) + `swarm` / CLI model routing | `PreToolUse` delegation guard (`invoke_subagent` and `swarm`) | [Antigravity guide](.antigravity-plugin/README.md) ([FR](.antigravity-plugin/README.fr.md)) |
+| **Google Antigravity** | Google Gemini 3.8 Flash, Gemini 4 Hydrogen, Neon, Argon | 7 native subagents (`invoke_subagent`) + `swarm` / CLI model routing | `PreToolUse` delegation guard + `SessionStart` update checker (2h TTL) | [Antigravity guide](.antigravity-plugin/README.md) ([FR](.antigravity-plugin/README.fr.md)) |
 
 ## Quick start
 
@@ -128,6 +128,7 @@ For full model pricing tables, effort selection grids, escalation gates, and pla
 ├── hooks.json, assets/logo.png      # Antigravity PreToolUse hook config & icon
 ├── scripts/
 │   ├── check_delegation.py          # Antigravity PreToolUse delegation guard
+│   ├── check_updates.py             # Antigravity SessionStart update checker (2h TTL)
 │   └── build_antigravity_bundle.py  # Deterministic .zip packager & sha256 checker
 ├── plugins/quota-orchestrator/      # Shared Codex & Claude Code plugin package
 │   ├── README.md                    # Shared package summary

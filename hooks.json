@@ -13,5 +13,15 @@
         ]
       }
     ]
+  },
+  "quota-orchestrator-update-check": {
+    "enabled": true,
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "python ./scripts/check_updates.py",
+        "timeout": 5
+      }
+    ]
   }
 }

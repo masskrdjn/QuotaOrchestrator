@@ -5,6 +5,18 @@ La version courante est définie dans le manifeste du plugin. Voir
 Les fixtures conservent les anciennes sources ; cet historique ne reconstitue
 pas les changements des versions précédentes.
 
+## 0.14.0 — 2026-11-21 (préparée localement)
+
+- Ajout d'un hook `SessionStart` pour Google Antigravity (`hooks.json` et
+  `scripts/check_updates.py`) vérifiant la disponibilité d'une version plus
+  récente de QuotaOrchestrator sur GitHub avec un cache TTL de **2 heures**
+  (timeout réseau de 2 s, fail-open hors-ligne, notification non bloquante via
+  `systemMessage`, désactivable avec `QUOTA_ORCHESTRATOR_DISABLE_UPDATE_CHECK=1`).
+- Intégration de `scripts/check_updates.py` dans l'archive déterministe
+  Antigravity (`scripts/build_antigravity_bundle.py`) et ajout de la suite de
+  tests hors-ligne `AntigravityUpdateCheckTest` dans
+  `tests/antigravity_plugin_test.py`.
+
 ## 0.13.1 — 2026-11-21 (préparée localement)
 
 - Refonte complète des README racine (`README.md`, `README.fr.md`) en un hub
