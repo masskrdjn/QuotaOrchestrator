@@ -11,11 +11,11 @@
       "description": "Selective multi-model routing for Google Gemini models in Antigravity, with seven subagents, routing rules, skill, and a PreToolUse delegation guard.",
       "source": {
         "source": "url",
-        "url": "https://github.com/masskrdjn/QuotaOrchestrator/releases/download/v0.14.2/quota-orchestrator-antigravity-0.14.2.zip",
-        "sha256": "63ecdda7e2682abc424be8a016a6c5fc8de7cd359d689262168a21bc80ced8fa"
+        "url": "https://github.com/masskrdjn/QuotaOrchestrator/releases/download/v0.15.0/quota-orchestrator-antigravity-0.15.0.zip",
+        "sha256": "ba19c3dc2b327cad2db4712db716a28169cc200c7d62366ec0a7373b0126aa34"
       },
       "category": "productivity",
-      "version": "0.14.2"
+      "version": "0.15.0"
     }
   ]
 }

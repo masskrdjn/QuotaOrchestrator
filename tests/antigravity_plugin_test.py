@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import importlib.util
+import io
 import json
 import re
 import shutil
 import subprocess
 import tempfile
 import unittest
+import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -79,7 +81,29 @@ class AntigravityPluginTest(unittest.TestCase):
         self.assertRegex(source["sha256"], r"^[0-9a-f]{64}$")
 
         builder = load_module("agy_bundle_builder", BUILDER_PATH)
-        self.assertEqual(builder.sha256_hex(builder.build_zip_bytes(ROOT)), source["sha256"])
+        bundle = builder.build_zip_bytes(ROOT)
+        self.assertEqual(builder.sha256_hex(bundle), source["sha256"])
+        skill_name = "skills/external-delegation/SKILL.md"
+        with zipfile.ZipFile(io.BytesIO(bundle)) as archive:
+            skill = archive.read(skill_name).decode("utf-8")
+            script, = re.findall(r'`(\.\./[^ `]+delegate_external\.py)`', skill)
+            script_path = (ROOT / skill_name).parent.joinpath(script).resolve()
+            self.assertEqual(script_path, ROOT / "plugins/quota-orchestrator/scripts/delegate_external.py")
+            self.assertEqual(
+                archive.read(script_path.relative_to(ROOT).as_posix()),
+                script_path.read_bytes().replace(b"\r\n", b"\n"),
+            )
+
+    def test_bundle_is_independent_of_checkout_line_endings(self):
+        builder = load_module("agy_bundle_builder", BUILDER_PATH)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            manifest = root / ".antigravity-plugin/plugin.json"
+            manifest.parent.mkdir()
+            manifest.write_bytes(b'{"version": "0.15.0"}\r\n')
+            windows_bundle = builder.build_zip_bytes(root)
+            manifest.write_bytes(b'{"version": "0.15.0"}\n')
+            self.assertEqual(builder.build_zip_bytes(root), windows_bundle)
 
     def test_hooks_json_structure(self):
         hooks = json.loads((ROOT / "hooks.json").read_text(encoding="utf-8"))
@@ -116,7 +140,7 @@ class AntigravityPluginTest(unittest.TestCase):
         ]
         self.assertEqual(unexpected, [], report["findings"])
         self.assertEqual(report["components"]["agents"], len(EXPECTED_AGENTS))
-        self.assertEqual(report["components"]["skills"], 1)
+        self.assertEqual(report["components"]["skills"], 2)
         self.assertEqual(report["components"]["rules"], 1)
         self.assertEqual(report["components"]["hooks"], 2)
 

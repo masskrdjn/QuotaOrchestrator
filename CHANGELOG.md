@@ -5,6 +5,27 @@ La version courante est définie dans le manifeste du plugin. Voir
 Les fixtures conservent les anciennes sources ; cet historique ne reconstitue
 pas les changements des versions précédentes.
 
+## 0.15.0 — 2026-11-21
+
+- Codex, Claude Code et Antigravity embarquent une délégation externe
+  facultative vers les CLI Codex, Claude Code, Grok Build et Antigravity.
+  Le script commun retourne la réponse ou l'erreur en JSON.
+- Ajout des règles d'orchestration multi-CLI dans `external-delegation`
+  (adéquation modèle/effort, préservation du cache chaud sur boucle d'outils
+  autonome, seuils de contexte 100k/200k/272k/1M et compensation d'effort en
+  repli) ainsi que du mode `--mode {read,write}` borné à l'espace de travail,
+  des chaînes de repli ordonnées (`--fallback`) sans relance après timeout, et
+  de la détection des modèles exposés par l'abonnement (`--list-models`,
+  `--check-models`, incluant les modèles Claude hébergés sur `agy` payant et
+  les restrictions des comptes Grok gratuits ou Claude sans Fable).
+- Codex exécute une session éphémère (`read-only` ou `workspace-write`) et
+  transmet son dernier message. Codex et Claude Code lisent la mission sur
+  l'entrée standard. Grok lit un fichier temporaire UTF-8 sans BOM.
+- Claude Code et Antigravity désactivent l'expansion des commandes slash
+  pour les missions. Antigravity reçoit son propre délai d'arrêt.
+- Sous Windows, le script résout les shims npm de Codex, Claude Code et Grok.
+  Il distingue un CLI introuvable d'une erreur de lancement.
+
 ## 0.14.2 — 2026-11-21
 
 - Le catalogue Antigravity synchronise maintenant son champ `version` avec les
