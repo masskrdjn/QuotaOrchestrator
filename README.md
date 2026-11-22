@@ -101,25 +101,39 @@ For full model pricing tables, effort selection grids, escalation gates, and pla
 
 In Codex, Claude Code, or Antigravity, ask QuotaOrchestrator to use the `external-delegation` skill
 and name the target CLI and the context it may receive. For example, ask it
-to send an excerpt to Grok Build for analysis. The plugin ships the shared
-helper and requires Python 3.11+ and an installed, authenticated target CLI
-on the terminal's PATH.
+to send an excerpt to Grok Build for analysis, delegate a full-repository audit
+to Antigravity (`gemini-4-neon-high`), or assign an isolated implementation lot
+in `--mode write`. The plugin ships the shared helper and requires Python 3.11+
+and an installed, authenticated target CLI on the terminal's `PATH`.
 
 From the mission's working directory, the skill runs the bundled helper:
 
 ```text
-python "<plugin directory>/scripts/delegate_external.py" grok mission.txt
+python "<plugin directory>/scripts/delegate_external.py" claude mission.txt --mode read --model opus --effort high --check-models --fallback agy:claude-opus-5-5-high --fallback codex:gpt-6.2-sol:xhigh
 ```
 
-The UTF-8 file contains the instructions and context. Choose `codex`, `claude`,
-`grok`, or `agy`. The helper requests a single turn in read-only mode for Codex
-and plan mode for the other CLIs. It returns the response or error as JSON.
-Optional `--model` and `--effort` values depend on the target. With `agy`, specify
-effort through a suffixed model ID or through `--effort` with a base model ID.
-The default timeout is 120 seconds, with one additional second for `agy` to exit.
-Codex and Claude Code receive the mission on stdin, Grok reads a temporary UTF-8
-file, and Antigravity receives it as a process argument in text mode. The
-target's permissions apply.
+The UTF-8 file contains a self-contained mission and its context so the target
+CLI can amortize its cold start over its own internal warm-cache tool loop.
+Choose `codex`, `claude`, `grok`, or `agy`. By default (`--mode read`), the
+helper requests read-only mode for Codex and plan mode for the other CLIs;
+`--mode write` enables bounded workspace edits (`workspace-write` on Codex,
+`acceptEdits` on Claude Code and Grok Build, `accept-edits` with `--sandbox`
+on Antigravity) without bypassing permission guards.
+
+Pass repeatable `--fallback <provider>[:<model>[:<effort>]]` options to define
+an ordered fallback chain when a target CLI or model is unavailable or
+restricted on the current plan (such as Claude without Fable 5.2 access or a
+free-tier Grok account), and `--check-models` (or `--list-models`) to verify
+whether the active `agy` or `grok` subscription exposes the requested model
+(including hosted Claude Sonnet/Opus 5.5 models on paid `agy` accounts) before
+running. When a fallback executes, the JSON response reports `fallback_used`,
+`requested`, and `attempts` so the primary agent always discloses the actual
+CLI, model, and effort used. With `agy`, specify effort through a suffixed
+model ID or through `--effort` with a base model ID. The default timeout is
+120 seconds, with one additional second for `agy` to exit; timeouts never
+trigger fallback retries. Codex and Claude Code receive the mission on stdin,
+Grok reads a temporary UTF-8 file, and Antigravity receives it as a process
+argument in text mode. The target's permissions apply.
 
 ## Safety boundaries
 

@@ -18,6 +18,8 @@ SCRIPT = (Path(__file__).resolve().parents[1]
 MODULE = runpy.run_path(str(SCRIPT))
 delegate = MODULE["delegate"]
 executable_command = MODULE["executable_command"]
+list_models = MODULE["list_models"]
+parse_fallback = MODULE["parse_fallback"]
 main = MODULE["main"]
 
 
@@ -83,6 +85,44 @@ class ExternalDelegation(unittest.TestCase):
                     if provider != "agy":
                         self.assertFalse(any(prompt in arg for arg in args))
 
+    def test_write_mode_flags_for_all_providers(self):
+        with tempfile.TemporaryDirectory() as directory:
+            fake_cli = Path(directory) / "fake_cli.py"
+            fake_cli.write_text(
+                "import json, sys\n"
+                "from pathlib import Path\n"
+                "args = sys.argv[1:]\n"
+                "if '-o' in args:\n"
+                "    Path(args[args.index('-o') + 1]).write_text(json.dumps(args), encoding='utf-8')\n"
+                "else:\n"
+                "    print(json.dumps(args))\n",
+                encoding="utf-8",
+            )
+            expected_mode_flag = {
+                "codex": ("--sandbox", "workspace-write"),
+                "claude": ("--permission-mode", "acceptEdits"),
+                "grok": ("--permission-mode", "acceptEdits"),
+                "agy": ("--mode", "accept-edits"),
+            }
+            for provider, (flag, value) in expected_mode_flag.items():
+                with self.subTest(provider=provider), patch.dict(
+                    delegate.__globals__,
+                    executable_command=lambda _: [sys.executable, str(fake_cli)],
+                ):
+                    result = delegate(provider, "edit file", "m1", "high", 5, mode="write")
+                    self.assertEqual(result["status"], "ok", result)
+                    self.assertEqual(result["mode"], "write")
+                    args = json.loads(result["response"])
+                    idx = args.index(flag)
+                    self.assertEqual(args[idx + 1], value)
+                    for forbidden in (
+                        "--yolo",
+                        "--dangerously-bypass-approvals-and-sandbox",
+                        "--dangerously-skip-permissions",
+                        "bypassPermissions",
+                    ):
+                        self.assertNotIn(forbidden, args)
+
     def test_codex_falls_back_to_stdout_when_last_message_is_missing(self):
         completed = subprocess.CompletedProcess(["codex"], 0, " fallback \n", "")
         with patch.dict(delegate.__globals__, executable_command=lambda _: ["codex"]), patch(
@@ -112,6 +152,96 @@ class ExternalDelegation(unittest.TestCase):
                 self.assertEqual(result["status"], "failed")
                 self.assertEqual(result["exit_code"], 7)
                 self.assertEqual(result["error"], "Authentication failed")
+
+    def test_list_models_and_check_models_for_agy_and_grok(self):
+        agy_stdout = (
+            "gemini-4-neon-high\tGemini 4 Neon (High)\n"
+            "gemini-4-hydrogen-high\tGemini 4 Hydrogen (High)\n"
+            "claude-opus-5-5-high\tClaude Opus 5.5 (High)\n"
+            "claude-sonnet-5-5-high\tClaude Sonnet 5.5 (High)\n"
+        )
+        grok_stdout = (
+            "You are logged in with grok.com.\n\n"
+            "Default model: grok-4.7\n\n"
+            "Available models:\n"
+            "  * grok-4.7 (default)\n"
+        )
+        with patch.dict(list_models.__globals__, executable_command=lambda p: [p]):
+            with patch("subprocess.run", return_value=subprocess.CompletedProcess(["agy"], 0, agy_stdout, "")):
+                agy_listing = list_models("agy", 5)
+                self.assertEqual(agy_listing["status"], "ok")
+                self.assertEqual(
+                    agy_listing["models"],
+                    [
+                        "gemini-4-neon-high",
+                        "gemini-4-hydrogen-high",
+                        "claude-opus-5-5-high",
+                        "claude-sonnet-5-5-high",
+                    ],
+                )
+            with patch("subprocess.run", return_value=subprocess.CompletedProcess(["grok"], 0, grok_stdout, "")):
+                grok_listing = list_models("grok", 5)
+                self.assertEqual(grok_listing["status"], "ok")
+                self.assertEqual(grok_listing["models"], ["grok-4.7"])
+
+    def test_ordered_fallback_chain_and_paid_agy_bridge_detection(self):
+        # Free agy account without claude-opus-5-5-high falls back to codex:gpt-6.2-sol:xhigh.
+        free_agy_models = "gemini-4-hydrogen-high\tGemini 4 Hydrogen (High)\n"
+
+        def fake_run(cmd, **kwargs):
+            if cmd[:2] == ["claude", "--permission-mode"]:
+                return subprocess.CompletedProcess(cmd, 1, "", "Model claude-fable-5-2 unavailable on plan")
+            if cmd == ["agy", "models"]:
+                return subprocess.CompletedProcess(cmd, 0, free_agy_models, "")
+            if cmd[0] == "codex":
+                out_idx = cmd.index("-o") + 1
+                Path(cmd[out_idx]).write_text("Sol xhigh fallback response", encoding="utf-8")
+                return subprocess.CompletedProcess(cmd, 0, "", "")
+            raise AssertionError(f"Unexpected command: {cmd}")
+
+        with patch.dict(delegate.__globals__, executable_command=lambda p: [p]), patch(
+            "subprocess.run", side_effect=fake_run,
+        ):
+            result = delegate(
+                "claude",
+                "arbitrate architecture",
+                "claude-fable-5-2",
+                "xhigh",
+                5,
+                fallbacks=["agy:claude-opus-5-5-high", "codex:gpt-6.2-sol:xhigh"],
+                check_models=True,
+            )
+            self.assertEqual(result["status"], "ok", result)
+            self.assertEqual(result["provider"], "codex")
+            self.assertEqual(result["model"], "gpt-6.2-sol")
+            self.assertEqual(result["effort"], "xhigh")
+            self.assertTrue(result["fallback_used"])
+            self.assertEqual(
+                result["requested"],
+                {"provider": "claude", "model": "claude-fable-5-2", "effort": "xhigh"},
+            )
+            self.assertEqual(len(result["attempts"]), 2)
+            self.assertEqual(result["attempts"][0]["provider"], "claude")
+            self.assertEqual(result["attempts"][0]["status"], "failed")
+            self.assertEqual(result["attempts"][1]["provider"], "agy")
+            self.assertEqual(result["attempts"][1]["status"], "unavailable")
+            self.assertIn("claude-opus-5-5-high", result["attempts"][1]["error"])
+
+    def test_timeout_stops_fallback_chain_immediately(self):
+        with patch.dict(delegate.__globals__, executable_command=lambda p: [p]), patch(
+            "subprocess.run", side_effect=subprocess.TimeoutExpired("claude", 5),
+        ) as run:
+            result = delegate(
+                "claude",
+                "long task",
+                "opus",
+                "high",
+                5,
+                fallbacks=["codex:gpt-6.2-sol:high"],
+            )
+            self.assertEqual(result["status"], "timeout")
+            self.assertFalse(result["fallback_used"])
+            self.assertEqual(run.call_count, 1)
 
     def test_windows_executable_precedes_shim(self):
         for provider in ("codex", "claude", "grok", "agy"):
@@ -174,6 +304,25 @@ class ExternalDelegation(unittest.TestCase):
                     self.assertEqual(exc.exception.code, 2)
                     self.assertIn(message, stderr.getvalue())
 
+            # Invalid fallback provider is rejected with exit code 2.
+            path.write_text("valid mission", encoding="utf-8")
+            argv = [str(SCRIPT), "grok", str(path), "--fallback", "unknown:m1:high"]
+            with patch.object(sys, "argv", argv), redirect_stderr(io.StringIO()) as stderr:
+                with self.assertRaises(SystemExit) as exc:
+                    main()
+                self.assertEqual(exc.exception.code, 2)
+                self.assertIn("unknown fallback provider", stderr.getvalue())
+
+    def test_main_list_models_mode(self):
+        expected = {"provider": "agy", "status": "ok", "models": ["gemini-4-neon-high"]}
+        mocked = Mock(return_value=expected)
+        with patch.object(sys, "argv", [str(SCRIPT), "agy", "--list-models"]), redirect_stdout(
+            io.StringIO(),
+        ) as stdout, patch.dict(main.__globals__, list_models=mocked):
+            self.assertEqual(main(), 0)
+            self.assertEqual(json.loads(stdout.getvalue()), expected)
+            mocked.assert_called_once_with("agy", 120)
+
     def test_main_accepts_utf8_bom(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "mission.txt"
@@ -187,3 +336,7 @@ class ExternalDelegation(unittest.TestCase):
                 self.assertEqual(main(), 0)
                 self.assertEqual(json.loads(stdout.getvalue()), expected)
             run.assert_called_once_with("grok", "Entrée", None, None, 120)
+
+
+if __name__ == "__main__":
+    unittest.main()

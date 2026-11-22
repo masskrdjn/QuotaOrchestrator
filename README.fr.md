@@ -101,27 +101,44 @@ Pour les tables de tarifs détaillées, grilles de choix d'effort, conditions d'
 
 Dans Codex, Claude Code ou Antigravity, demandez à QuotaOrchestrator d'utiliser la compétence
 `external-delegation` et indiquez le CLI cible et le contexte qu'il peut
-recevoir. Vous pouvez par exemple demander l'analyse d'un extrait à Grok Build.
-Le plugin fournit le script commun. Il requiert Python 3.11+ et un CLI cible
-déjà installé, authentifié et accessible dans le `PATH` du terminal.
+recevoir. Vous pouvez par exemple demander l'analyse d'un extrait à Grok Build,
+confier un audit très grand contexte à Antigravity (`gemini-4-neon-high`) ou
+déléguer un lot d'écriture isolé via `--mode write`. Le plugin fournit le script
+commun. Il requiert Python 3.11+ et un CLI cible déjà installé, authentifié et
+accessible dans le `PATH` du terminal.
 
 Depuis le répertoire de travail de la mission, la compétence utilise le script
-embarqué.
+embarqué :
 
 ```text
-python "<dossier du plugin>/scripts/delegate_external.py" grok mission.txt
+python "<dossier du plugin>/scripts/delegate_external.py" claude mission.txt --mode read --model opus --effort high --check-models --fallback agy:claude-opus-5-5-high --fallback codex:gpt-6.2-sol:xhigh
 ```
 
-Le fichier UTF-8 contient la mission et son contexte. Choisissez `codex`,
-`claude`, `grok` ou `agy`. Le script demande un seul tour en lecture seule
-pour Codex et en mode plan pour les autres CLI. Il retourne la réponse ou
-l'erreur en JSON. Les valeurs de `--model` et `--effort` dépendent de la cible.
-Avec `agy`, indiquez l'effort par un suffixe dans l'identifiant du modèle ou
-par `--effort` avec l'identifiant de base. Le délai par défaut est de 120
-secondes, avec une seconde supplémentaire pour laisser `agy` s'arrêter.
-Codex et Claude Code reçoivent la mission sur l'entrée standard, Grok lit un
-fichier UTF-8 temporaire et Antigravity reçoit la mission en argument du
-processus en mode texte. Les permissions du CLI cible s'appliquent.
+Le fichier UTF-8 contient une mission autonome et son contexte afin que le CLI
+cible amortisse son premier tour à froid sur sa propre boucle d'outils interne
+en cache chaud. Choisissez `codex`, `claude`, `grok` ou `agy`. Par défaut
+(`--mode read`), le script demande la lecture seule pour Codex et le mode plan
+pour les autres CLI ; `--mode write` active l'écriture bornée à l'espace de
+travail (`workspace-write` sous Codex, `acceptEdits` sous Claude Code et Grok
+Build, `accept-edits` avec `--sandbox` sous Antigravity) sans jamais contourner
+les garde-fous de permissions.
+
+Utilisez `--fallback <provider>[:<model>[:<effort>]]` (répétable) pour définir
+une chaîne de repli ordonnée lorsqu'un CLI ou un modèle cible est indisponible
+ou restreint par le forfait (comme Claude sans accès à Fable 5.2 ou un compte
+Grok gratuit), ainsi que `--check-models` (ou `--list-models`) pour vérifier si
+l'abonnement `agy` ou `grok` actif expose le modèle demandé (y compris les
+modèles Claude Sonnet/Opus 5.5 hébergés sur un compte `agy` payant) avant
+l'exécution. Lorsqu'un fallback prend le relais, la réponse JSON indique
+`fallback_used`, `requested` et `attempts` afin que l'agent principal déclare
+toujours le couple CLI/modèle/effort réellement exécuté. Avec `agy`, indiquez
+l'effort par un suffixe dans l'identifiant du modèle ou par `--effort` avec
+l'identifiant de base. Le délai par défaut est de 120 secondes, avec une
+seconde supplémentaire pour laisser `agy` s'arrêter ; un dépassement de délai
+ne déclenche jamais de relance sur les fallbacks. Codex et Claude Code
+reçoivent la mission sur l'entrée standard, Grok lit un fichier UTF-8
+temporaire et Antigravity reçoit la mission en argument du processus en mode
+texte. Les permissions du CLI cible s'appliquent.
 
 ## Limites de sécurité
 
