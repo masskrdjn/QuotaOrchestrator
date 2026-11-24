@@ -32,16 +32,17 @@ global.
 La version du client simulé des tests natifs n'est pas la version du plugin.
 
 Distinguer « préparée localement », « commitée », « poussée » et « publiée ».
-Un numéro modifié ne prouve aucune étape suivante. Ne pas publier, pousser ou
-créer un tag au seul motif que la version a changé. Dès qu'une version est
-publiée, elle doit avoir sa propre GitHub Release et son tag Git `vX.Y.Z`, tous
-deux correspondant exactement à la version des manifestes. Un tag Git seul ne
-crée pas une GitHub Release ; créer et publier une release pour chaque nouvelle
-version publiée, sans réutiliser une release ou un tag existant.
+Un numéro modifié ne prouve aucune étape suivante. En revanche, **chaque mise à
+jour poussée sur le dépôt doit toujours être publiée** : dès qu'une évolution
+est commitée et poussée, reconstruire le bundle Antigravity, créer et pousser le
+tag Git `vX.Y.Z`, puis publier la GitHub Release correspondante avec l'archive
+`dist/quota-orchestrator-antigravity-X.Y.Z.zip`. Un tag Git seul ne crée pas une
+GitHub Release ; créer et publier une release distincte pour chaque nouvelle
+version, sans jamais réutiliser une release ou un tag existant.
 
 ## Publier une version
 
-Après avoir préparé et validé la version :
+À exécuter systématiquement lors de chaque mise à jour poussée, après validation :
 
 1. Construire le bundle Antigravity déterministe avec
    `python scripts/build_antigravity_bundle.py`. Le script met à jour

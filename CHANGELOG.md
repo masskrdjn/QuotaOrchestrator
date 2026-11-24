@@ -5,13 +5,16 @@ La version courante est définie dans le manifeste du plugin. Voir
 Les fixtures conservent les anciennes sources ; cet historique ne reconstitue
 pas les changements des versions précédentes.
 
-## 0.15.1 — 2026-11-24 (préparée localement)
+## 0.15.1 — 2026-11-24
 
 - Remplacement de `gemini-4-argon` (en cours de décommissionnement) par
   `gemini-4-carbon` (`gemini-4-carbon-{low,medium,high}`, désormais disponible
   pour tous) dans la partie Google Antigravity du plugin (`rules/AGENTS.md`,
   `skills/quota-orchestrator/SKILL.md`, `.antigravity-plugin/README*.md`,
   `README*.md`) ainsi que dans les trois copies du skill `external-delegation`.
+- Clarification de la politique de publication (`CONTRIBUTING.md`, `AGENTS.md`) :
+  chaque mise à jour poussée sur le dépôt publie systématiquement son tag Git
+  `vX.Y.Z` et sa GitHub Release avec l'archive Antigravity `.zip`.
 
 ## 0.15.0 — 2026-11-21
 
