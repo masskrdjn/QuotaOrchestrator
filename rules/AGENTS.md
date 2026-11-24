@@ -2,7 +2,7 @@
 
 Priorités : préserver la qualité et la pertinence du résultat, puis réduire le
 coût total, puis le délai, tout en préservant le quota des paliers supérieurs
-(notamment `gemini-4-argon` au quota hebdomadaire et `gemini-4-neon`). Le coût
+(notamment `gemini-4-carbon` au quota hebdomadaire et `gemini-4-neon`). Le coût
 s'entend en dollars API (tokens de chaque type × tarif du modèle), pas en nombre
 de tokens : plus de tokens sur un palier moins cher est un bon échange à qualité
 égale. Le modèle racine choisi par l'utilisateur reste prioritaire, comme ses
@@ -53,8 +53,8 @@ Antigravity expose deux mécanismes complémentaires :
     courant bien spécifié, exploration, recherche structurée.
   - `gemini-4-neon-{low,medium,high,xhigh}` (3,00 / 15,00 $/MTok) : ingénierie
     complexe, raisonnement rapide, intégration multi-fichiers.
-  - `gemini-4-argon-{low,medium,high}` (quota hebdomadaire dédié) : raisonnement
-    profond de frontière, décisions d'architecture rares.
+  - `gemini-4-carbon-{low,medium,high}` (4,00 / 20,00 $/MTok, quota hebdomadaire
+    dédié) : raisonnement profond de frontière, décisions d'architecture rares.
 
 ## Protocole de délégation
 
@@ -70,7 +70,7 @@ Antigravity expose deux mécanismes complémentaires :
 ## Le skill `quota-orchestrator`
 
 Le charger uniquement pour arbitrer un modèle/effort précis dans `swarm`, une
-escalade vers `gemini-4-argon`, une consultation `architect`, une revue
+escalade vers `gemini-4-carbon`, une consultation `architect`, une revue
 indépendante ou une comparaison de coûts. Jamais pour une tâche locale ni pour
 un sous-agent déjà mandaté.
 

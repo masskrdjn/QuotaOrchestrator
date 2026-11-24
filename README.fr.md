@@ -6,7 +6,7 @@ Pour modifier ce dépôt : lire [CONTRIBUTING.md](CONTRIBUTING.md).
 Les évolutions sont décrites dans [CHANGELOG.md](CHANGELOG.md).
 
 > [!IMPORTANT]
-> Version actuelle du plugin : **0.15.0**.
+> Version actuelle du plugin : **0.15.1**.
 >
 > Un seul dépôt, trois intégrations natives : **Codex** (OpenAI), **Claude Code** (Anthropic) et **Google Antigravity** (Google Gemini).
 
@@ -18,7 +18,7 @@ QuotaOrchestrator fournit des plugins de routage sélectif multi-modèles pour *
 |---|---|---|---|---|
 | **Codex** | OpenAI GPT-6 Luna, Sol (5.6 / 6 / 6.1 / 6.2), Terra 6.1, Astra 6.2 | 9 profils standard + 2 variantes `_complex` facultatives | Réconciliation `SessionStart` + garde-fou `PreToolUse` | [Guide Codex](plugins/quota-orchestrator/codex/README.fr.md) ([EN](plugins/quota-orchestrator/codex/README.md)) |
 | **Claude Code** | Anthropic Haiku 5.5, Sonnet 5.5, Opus 5.5, Fable 5.2 | 5 agents spécialisés (`scout`, `researcher`, `runner`, `builder`, `architect`) | Injection des règles `SessionStart` + hook d'identité observée `PostToolUse` | [Guide Claude Code](plugins/quota-orchestrator/claude/README.fr.md) ([EN](plugins/quota-orchestrator/claude/README.md)) |
-| **Google Antigravity** | Google Gemini 3.8 Flash, Gemini 4 Hydrogen, Neon, Argon | 7 sous-agents natifs (`invoke_subagent`) + routage `swarm` / CLI | Garde-fou `PreToolUse` + vérificateur de mises à jour `SessionStart` (TTL 2 h) | [Guide Antigravity](.antigravity-plugin/README.fr.md) ([EN](.antigravity-plugin/README.md)) |
+| **Google Antigravity** | Google Gemini 3.8 Flash, Gemini 4 Hydrogen, Neon, Carbon | 7 sous-agents natifs (`invoke_subagent`) + routage `swarm` / CLI | Garde-fou `PreToolUse` + vérificateur de mises à jour `SessionStart` (TTL 2 h) | [Guide Antigravity](.antigravity-plugin/README.fr.md) ([EN](.antigravity-plugin/README.md)) |
 
 ## Démarrage rapide
 
@@ -67,7 +67,7 @@ Pour empaqueter l'archive `.zip` de release ou valider le catalogue Antigravity,
 Priorités partagées sur les trois plateformes, dans l'ordre :
 
 1. **Préserver la qualité et la pertinence du résultat.**
-2. **Réduire le coût total en dollars API** (tokens de chaque type × tarif du modèle, coordination racine, intégration et reprises comprises : plus de tokens sur un palier moins cher est un bon échange à qualité égale), tout en préservant les quotas limités des paliers frontière (Astra, Fable, Argon).
+2. **Réduire le coût total en dollars API** (tokens de chaque type × tarif du modèle, coordination racine, intégration et reprises comprises : plus de tokens sur un palier moins cher est un bon échange à qualité égale), tout en préservant les quotas limités des paliers frontière (Astra, Fable, Carbon).
 3. **Réduire le délai.**
 
 Règles fondamentales :
@@ -90,7 +90,7 @@ Règles fondamentales :
 | `builder_luna` / `builder-flash` | Implémentation substantielle entièrement spécifiée et testable | `gpt-6-luna` (`max`) | — (utiliser `builder`) | `flash` / `gemini-4-hydrogen-*` |
 | `builder` | Implémentation exigeant conception, arbitrage ou intégration délicate | `gpt-6.2-sol` (`high`) | `sonnet` (`high`, escalade `opus`) | `pro` / `gemini-4-neon-*` |
 | `strategist` | Cadrage complexe, découpage et spécification en lecture seule | `gpt-6.2-sol` (`medium`) | — | `pro` / `gemini-4-neon-*` |
-| `architect` | Rares décisions d'architecture sur contexte déjà rassemblé | `gpt-6.2-astra` (`low`) | `opus` (`xhigh`) ou `fable` (sur accès confirmé) | `pro` / `gemini-4-argon-*` |
+| `architect` | Rares décisions d'architecture sur contexte déjà rassemblé | `gpt-6.2-astra` (`low`) | `opus` (`xhigh`) ou `fable` (sur accès confirmé) | `pro` / `gemini-4-carbon-*` |
 | `visual_operator` | Inspection visuelle et parcours d'interface bornés | `gpt-6.1-terra` (`medium`) | — | Sous-agent natif `browser` |
 | `writer` | Rédaction ou réécriture substantielle à partir de faits établis | `gpt-6.1-terra` (`medium`) | — | — |
 | `scout_complex` / `researcher_complex` | Exploration ou synthèse avancée quand le palier standard ne suffit pas | `gpt-6.2-sol` (`xhigh`) | — | `swarm` (`gemini-4-neon-*`) |

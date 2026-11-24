@@ -5,7 +5,7 @@
 Selective multi-model routing for **Google Gemini** models in **Google Antigravity** (App, CLI, and IDE). Delegates substantial, well-scoped work to specialized subagents and lower-cost Gemini tiers while keeping decisions, integration, and small local tasks at the primary agent.
 
 > [!IMPORTANT]
-> Current plugin version: **0.15.0**.
+> Current plugin version: **0.15.1**.
 
 ## Prerequisites
 
@@ -37,7 +37,7 @@ Antigravity's `marketplace.json` validator (`agy plugin validate ./.antigravity-
 ```bash
 python scripts/build_antigravity_bundle.py
 python scripts/build_antigravity_bundle.py --check
-agy plugin validate --strict ./dist/quota-orchestrator-antigravity-0.15.0.zip
+agy plugin validate --strict ./dist/quota-orchestrator-antigravity-0.15.1.zip
 ```
 
 Attach the generated `dist/quota-orchestrator-antigravity-<version>.zip` to the matching GitHub Release (`v<version>`), then verify the remote catalog with `agy plugin validate --strict ./.antigravity-plugin/marketplace.json`.
@@ -53,7 +53,7 @@ Attach the generated `dist/quota-orchestrator-antigravity-<version>.zip` to the 
   - `strategist` (`pro`) — read-only framing, decomposition, and specification.
   - `architect` (`pro`) — rare, high-stakes architectural decisions on a bounded brief.
 - **Always-on routing rules** (`rules/AGENTS.md`) — triage thresholds, same-model/effort ban, and quota preservation.
-- **On-demand routing skill** (`skills/quota-orchestrator/SKILL.md`) — full Google Gemini model & effort routing matrix for `swarm` and `agy --model` (`gemini-3.8-flash-*`, `gemini-4-hydrogen-*`, `gemini-4-neon-*`, `gemini-4-argon-*`).
+- **On-demand routing skill** (`skills/quota-orchestrator/SKILL.md`) — full Google Gemini model & effort routing matrix for `swarm` and `agy --model` (`gemini-3.8-flash-*`, `gemini-4-hydrogen-*`, `gemini-4-neon-*`, `gemini-4-carbon-*`).
 - **PreToolUse delegation guard** (`hooks.json` + `scripts/check_delegation.py`) — blocks redundant delegations that would run a child on the exact same model and effort as the parent (`invoke_subagent` with `Model="inherit"` on generic roles, or `swarm` `add` with missing/identical `model`). Requires Python 3.11+ available as `python`.
 - **External delegation skill** (`skills/external-delegation/SKILL.md`) — orchestrates cross-CLI missions across installed Codex, Claude Code, Grok Build, and Antigravity CLIs with capability and effort matching, bounded `read`/`write` modes, model availability checks (`--check-models` / `--list-models`), and ordered `--fallback` chains.
 - **SessionStart update checker** (`hooks.json` + `scripts/check_updates.py`) — checks GitHub at most once every **2 hours** (cached locally, 2-second timeout, fails open offline) and displays a non-blocking `systemMessage` when a newer version of QuotaOrchestrator is available. Never modifies plugin files automatically; disable with `QUOTA_ORCHESTRATOR_DISABLE_UPDATE_CHECK=1`.
@@ -68,7 +68,7 @@ Attach the generated `dist/quota-orchestrator-antigravity-<version>.zip` to the 
 | `swarm` / CLI | `gemini-3.8-flash-{low,medium,high}` | Fast validations, high-volume triage (~$0.75 / $3.75 per 1M tokens) |
 | `swarm` / CLI | `gemini-4-hydrogen-{low,medium,high,xhigh}` | Structured exploration, research, specified implementation ($1.50 / $7.50 per 1M tokens) |
 | `swarm` / CLI | `gemini-4-neon-{low,medium,high,xhigh}` | Default root, complex engineering, multi-file integration ($3.00 / $15.00 per 1M tokens) |
-| `swarm` / CLI | `gemini-4-argon-{low,medium,high}` | Rare frontier reasoning & `architect` consultations (separate weekly quota pool) |
+| `swarm` / CLI | `gemini-4-carbon-{low,medium,high}` | Rare frontier reasoning & `architect` consultations ($4.00 / $20.00 per 1M tokens; separate weekly quota pool) |
 
 ## Routing policy & safety boundaries
 

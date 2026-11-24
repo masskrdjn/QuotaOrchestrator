@@ -6,7 +6,7 @@ To modify this repository, read [CONTRIBUTING.md](CONTRIBUTING.md).
 See [CHANGELOG.md](CHANGELOG.md) for changes.
 
 > [!IMPORTANT]
-> Current plugin version: **0.15.0**.
+> Current plugin version: **0.15.1**.
 >
 > One repository, three native integrations: **Codex** (OpenAI), **Claude Code** (Anthropic), and **Google Antigravity** (Google Gemini).
 
@@ -18,7 +18,7 @@ QuotaOrchestrator provides selective multi-model routing plugins for **Codex**, 
 |---|---|---|---|---|
 | **Codex** | OpenAI GPT-6 Luna, Sol (5.6 / 6 / 6.1 / 6.2), Terra 6.1, Astra 6.2 | 9 standard profiles + 2 optional `_complex` variants | `SessionStart` profile reconciliation + `PreToolUse` delegation guard | [Codex guide](plugins/quota-orchestrator/codex/README.md) ([FR](plugins/quota-orchestrator/codex/README.fr.md)) |
 | **Claude Code** | Anthropic Haiku 5.5, Sonnet 5.5, Opus 5.5, Fable 5.2 | 5 specialized agents (`scout`, `researcher`, `runner`, `builder`, `architect`) | `SessionStart` rule injection + `PostToolUse` observed-identity hook | [Claude Code guide](plugins/quota-orchestrator/claude/README.md) ([FR](plugins/quota-orchestrator/claude/README.fr.md)) |
-| **Google Antigravity** | Google Gemini 3.8 Flash, Gemini 4 Hydrogen, Neon, Argon | 7 native subagents (`invoke_subagent`) + `swarm` / CLI model routing | `PreToolUse` delegation guard + `SessionStart` update checker (2h TTL) | [Antigravity guide](.antigravity-plugin/README.md) ([FR](.antigravity-plugin/README.fr.md)) |
+| **Google Antigravity** | Google Gemini 3.8 Flash, Gemini 4 Hydrogen, Neon, Carbon | 7 native subagents (`invoke_subagent`) + `swarm` / CLI model routing | `PreToolUse` delegation guard + `SessionStart` update checker (2h TTL) | [Antigravity guide](.antigravity-plugin/README.md) ([FR](.antigravity-plugin/README.fr.md)) |
 
 ## Quick start
 
@@ -67,7 +67,7 @@ Packaging a release `.zip` bundle or validating the Antigravity catalog? See the
 Priorities across all three platforms, in order:
 
 1. **Preserve result quality and relevance.**
-2. **Reduce total cost in API dollars** (tokens of each type × the model's rate, including root coordination, integration, and rework — more tokens on a cheaper tier is a good trade at equal quality), while preserving scarce frontier/weekly quotas (Astra, Fable, Argon).
+2. **Reduce total cost in API dollars** (tokens of each type × the model's rate, including root coordination, integration, and rework — more tokens on a cheaper tier is a good trade at equal quality), while preserving scarce frontier/weekly quotas (Astra, Fable, Carbon).
 3. **Reduce latency.**
 
 Core rules:
@@ -90,7 +90,7 @@ Core rules:
 | `builder_luna` / `builder-flash` | Substantial, fully specified, reliably testable implementation | `gpt-6-luna` (`max`) | — (use `builder`) | `flash` / `gemini-4-hydrogen-*` |
 | `builder` | Implementation requiring design, tradeoffs, or delicate integration | `gpt-6.2-sol` (`high`) | `sonnet` (`high`, escalate to `opus`) | `pro` / `gemini-4-neon-*` |
 | `strategist` | Read-only complex framing, decomposition, and specification | `gpt-6.2-sol` (`medium`) | — | `pro` / `gemini-4-neon-*` |
-| `architect` | Rare, bounded architectural decisions on an assembled brief | `gpt-6.2-astra` (`low`) | `opus` (`xhigh`) or `fable` (on confirmed access) | `pro` / `gemini-4-argon-*` |
+| `architect` | Rare, bounded architectural decisions on an assembled brief | `gpt-6.2-astra` (`low`) | `opus` (`xhigh`) or `fable` (on confirmed access) | `pro` / `gemini-4-carbon-*` |
 | `visual_operator` | Visual inspection and bounded UI workflows | `gpt-6.1-terra` (`medium`) | — | Built-in `browser` subagent |
 | `writer` | Substantial drafting or rewriting from established facts | `gpt-6.1-terra` (`medium`) | — | — |
 | `scout_complex` / `researcher_complex` | Optional high-capacity exploration/synthesis when standard tier is insufficient | `gpt-6.2-sol` (`xhigh`) | — | `swarm` (`gemini-4-neon-*`) |

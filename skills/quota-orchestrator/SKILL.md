@@ -3,7 +3,7 @@ name: quota-orchestrator
 description: >-
   Protocole complet de routage multi-modèles Google Gemini dans Antigravity :
   choisir un modèle et un effort précis dans swarm/CLI (Gemini 3.8 Flash,
-  Gemini 4 Hydrogen, Neon, Argon), arbitrer une escalade architect ou
+  Gemini 4 Hydrogen, Neon, Carbon), arbitrer une escalade architect ou
   strategist, organiser une revue indépendante ou évaluer le coût complet.
   Ne pas charger pour une tâche locale ni dans un sous-agent déjà mandaté.
 ---
@@ -17,7 +17,7 @@ description: >-
    moins cher utilisable.
 2. **Réduire le coût total en dollars API** (tokens d'entrée, cache et sortie ×
    tarif du modèle, racine + enfants + intégration + reprises) et **préserver
-   les quotas** (notamment le quota hebdomadaire de `gemini-4-argon` et le quota
+   les quotas** (notamment le quota hebdomadaire de `gemini-4-carbon` et le quota
    partagé de `gemini-4-neon`).
 3. **Réduire le délai**, sans multiplier les reprises.
 
@@ -52,20 +52,20 @@ politique d'exécution et leur liste d'outils :
 
 Pour un travail multi-pistes dans `swarm` (ou un lancement `agy --model`),
 Antigravity expose les modèles Google avec leurs niveaux d'effort explicites
-(vérifiés par `agy models` et `swarm(action="models", all=true)` le 2026-11-21) :
+(vérifiés par `agy models` et `swarm(action="models", all=true)` le 2026-11-24) :
 
 | Modèle Google | Identifiants Antigravity | Tarifs API indicatifs ($/1M entrée / sortie) | Pool de quota observé | Candidature projet |
 |---|---|---|---|---|
 | **Gemini 3.8 Flash** | `gemini-3.8-flash-{low,medium,high}` | ~0,75 / 3,75 *(tarif introductif)* | Pool 5 h partagé | Validations, triage volumineux, tâches rapides à faible ambiguïté |
 | **Gemini 4 Hydrogen** | `gemini-4-hydrogen-{low,medium,high,xhigh}` | 1,50 / 7,50 *(cache lecture ~0,075)* | Pool 5 h partagé | Exploration, recherche structurée, implémentation bien spécifiée (`builder-flash`) |
 | **Gemini 4 Neon** | `gemini-4-neon-{low,medium,high,xhigh}` | 3,00 / 15,00 *(cache lecture ~0,15)* | Pool 5 h partagé | Racine par défaut, ingénierie complexe, intégration multi-fichiers (`builder`, `strategist`) |
-| **Gemini 4 Argon** | `gemini-4-argon-{low,medium,high}` | Palier frontière *(vérifier grille Vertex/AI Studio)* | **Pool hebdomadaire dédié** | Raisonnement profond longue portée, arbitrage `architect` rare |
+| **Gemini 4 Carbon** | `gemini-4-carbon-{low,medium,high}` | 4,00 / 20,00 *(introductif 2,00 / 10,00 jusqu'au 2026-11-30 ; cache -95 %)* | **Pool hebdomadaire dédié** | Raisonnement profond longue portée, arbitrage `architect` rare |
 
-> **Sources et date (2026-11-21)** : tarifs indicatifs issus de la documentation
-> publique Google AI / Gemini API (Gemini 4 Hydrogen, Neon, Argon et Gemini 3.8
+> **Sources et date (2026-11-24)** : tarifs indicatifs issus de la documentation
+> publique Google AI / Gemini API (Gemini 4 Hydrogen, Neon, Carbon et Gemini 3.8
 > Flash) et disponibilité runtime vérifiée sur `agy models`. Les niveaux d'effort
 > ne sont pas équivalents entre familles : `hydrogen-xhigh` n'équivaut pas à
-> `neon-medium`, ni `neon-xhigh` à `argon-low`. Toujours vérifier la disponibilité
+> `neon-medium`, ni `neon-xhigh` à `carbon-low`. Toujours vérifier la disponibilité
 > effective dans la session courante via `swarm(action="models", all=true)`.
 
 ---
@@ -81,8 +81,8 @@ contradictions, difficulté de validation, coût d'une erreur), puis comparer le
 | Contrat explicite, faible ambiguïté, validation directe | Rester à la racine ; `runner` (`flash_lite`) si validation longue | `gemini-3.8-flash-medium`, `gemini-4-hydrogen-low/medium` | Vérification directe. Petites tâches restent à la racine. |
 | Lot multi-fichiers spécifié, jugement limité | `scout` / `researcher` / `builder-flash` (`flash`) | `gemini-4-hydrogen-medium/high` | Contrôler les interactions ; remonter toute ambiguïté décisive. |
 | Interactions non triviales, invariants subtils, hypothèses concurrentes | `builder` / `strategist` (`pro`) ou racine | `gemini-4-neon-medium/high`, `gemini-4-hydrogen-xhigh` si capacité suffisante | Valider les invariants ; escalader si la capacité limite le résultat. |
-| Preuves contradictoires, synthèse délicate, validation indirecte | Racine ou `strategist` (`pro`) | `gemini-4-neon-high/xhigh`, `gemini-4-argon-medium` | Préserver les réserves ; ne jamais transformer une hypothèse en fait. |
-| Décision structurante coûteuse à corriger, contradiction persistante | `architect` (`pro`) | `gemini-4-argon-medium/high` | Enveloppe bornée, aucune exploration ni écriture par `architect`. |
+| Preuves contradictoires, synthèse délicate, validation indirecte | Racine ou `strategist` (`pro`) | `gemini-4-neon-high/xhigh`, `gemini-4-carbon-medium` | Préserver les réserves ; ne jamais transformer une hypothèse en fait. |
+| Décision structurante coûteuse à corriger, contradiction persistante | `architect` (`pro`) | `gemini-4-carbon-medium/high` | Enveloppe bornée, aucune exploration ni écriture par `architect`. |
 
 ---
 
@@ -100,7 +100,7 @@ contradictions, difficulté de validation, coût d'une erreur), puis comparer le
    besoin précis de qualité ou de délai annoncé explicitement.
 3. **Parallélisme maîtrisé** : dans `swarm`, privilégier `workspace: "share"` ou
    `"branch"` pour les workers qui écrivent, afin que deux agents n'éditent
-   jamais les mêmes fichiers. Ne pas lancer plusieurs workers `neon`/`argon`
+   jamais les mêmes fichiers. Ne pas lancer plusieurs workers `neon`/`carbon`
    coûteux en parallèle sans gain démontré ou besoin de délai explicite.
 4. **Revue indépendante** : jamais par défaut. Réservée à la sécurité, la perte
    de données, une migration irréversible, un contrat public ou une
@@ -110,7 +110,7 @@ contradictions, difficulté de validation, coût d'une erreur), puis comparer le
 
 ## Consultation `architect`
 
-Avant d'invoquer `architect` (ou un worker `gemini-4-argon-*`), préparer une
+Avant d'invoquer `architect` (ou un worker `gemini-4-carbon-*`), préparer une
 enveloppe autosuffisante :
 - objectif et contraintes non négociables ;
 - extraits exacts (`chemin:ligne`) déjà collectés ;

@@ -1,6 +1,11 @@
 ---
 name: external-delegation
-description: Orchestrate and delegate missions across installed Codex, Claude Code, Grok Build, and Antigravity CLIs with capability matching, reasoning effort selection, bounded read/write modes, and ordered fallbacks.
+description: >-
+  Orchestrate and delegate missions across installed Codex, Claude Code, Grok Build,
+  and Antigravity CLIs with capability matching, reasoning effort selection, bounded
+  read/write modes, and ordered fallbacks. / Orchestrer et déléguer des missions vers
+  les CLI Codex, Claude Code, Grok Build et Antigravity installés, avec choix de
+  modèle/effort, modes lecture/écriture bornés et replis ordonnés.
 ---
 
 # Multi-CLI External Delegation & Model Routing
@@ -21,7 +26,7 @@ Supported options:
   - `read`: read-only / plan mode (`codex --sandbox read-only`, `claude` and `grok --permission-mode plan`, `agy --mode plan --sandbox`). Use for architecture, framing (`strategist`), research, large-context audits, and independent reviews.
   - `write`: bounded workspace edits (`codex --sandbox workspace-write`, `claude` and `grok --permission-mode acceptEdits`, `agy --mode accept-edits --sandbox`). Never uses `--yolo`, `--dangerously-skip-permissions`, or `bypassPermissions`. Assign disjoint file scopes or an isolated git worktree so two agents never edit the same files concurrently.
 - `--fallback <PROVIDER[:MODEL[:EFFORT]]>` (repeatable): ordered fallback chain tried automatically when a target CLI or model is `unavailable` or `failed` (missing binary, account tier restriction, quota exhaustion). Never triggers after a `timeout`.
-- `--check-models`: before invoking `agy` or `grok`, queries `agy models` or `grok models` to confirm the target model is exposed by the active subscription (for example, checking whether a paid `agy` account exposes `claude-opus-5-5-high` or `gemini-4-argon-high` before running, and jumping immediately to the next `--fallback` if absent).
+- `--check-models`: before invoking `agy` or `grok`, queries `agy models` or `grok models` to confirm the target model is exposed by the active subscription (for example, checking whether a paid `agy` account exposes `claude-opus-5-5-high` or `gemini-4-carbon-high` before running, and jumping immediately to the next `--fallback` if absent).
 - `--list-models`: prints the JSON list of models exposed by `agy` or `grok` for the current account and exits.
 - `--timeout <SECONDS>` (default `120`).
 
@@ -49,18 +54,18 @@ Remove any temporary mission file you created after the call.
 | `agy` | `gemini-3.8-flash` | `low`, `medium`, `high` | ~$0.75 / $3.75 | Shared 5h pool | Fast triage and mechanical checks. |
 | `agy` | `gemini-4-hydrogen` | `low`, `medium`, `high`, `xhigh` | $1.50 / $7.50 *(cache ~$0.075)* | Shared 5h pool | Fast exploration, structured research, well-specified code, and high-speed counter-analysis. |
 | `agy` | `gemini-4-neon` | `low`, `medium`, `high`, `xhigh` | $3.00 / $15.00 *(cache ~$0.15)* | **1M+ stable** | Full-repository ingestion (> 250k–1M tokens) and multi-language CLI engineering without 200k/272k price cliffs. |
-| `agy` | `gemini-4-argon` | `low`, `medium`, `high` | Frontier tier | **Dedicated weekly pool** | Long-horizon synthesis and rare architectural arbitration (`architect`). |
+| `agy` | `gemini-4-carbon` | `low`, `medium`, `high` | $4.00 / $20.00 *(intro $2.00 / $10.00 through 2026-11-30; 95% cache)* | **Dedicated weekly pool** | Long-horizon synthesis and rare architectural arbitration (`architect`). |
 | `agy` *(paid bridge)* | `claude-sonnet-5-5-{low,medium,high}`<br>`claude-opus-5-5-{low,medium,high}` | Suffixed (`low`, `medium`, `high`) | Paid Antigravity subscription | Account-dependent | Hosted Claude models inside `agy`. Always pass `--check-models` so free/unsupported `agy` accounts fall back cleanly. |
 | `grok` | `grok-4.7` *(default)*<br>`grok-build-0.1` *(API)* | `low`, `medium`, `high`, `xhigh` | $2.00 / $6.00 *(4.7 < 200k)*<br>$1.00 / $2.00 *(build-0.1)* | **≥ 200k** (×2: $4.00 / $12.00) | High output speed (tokens/s) and low output cost below 200k. **Free tier limitation**: on a free `grok` account, high reasoning efforts and large prompts fail or exhaust quota immediately — treat as `free_restricted` and route to fallbacks by default. |
 
 ## 4. Cross-CLI Routing & Fallback Matrix
 
-When a primary model is unavailable (no Fable access on Claude, free-tier Grok account, exhausted weekly Argon/Astra quota, or missing CLI), apply **effort compensation** on the fallback tier: raise effort (`high` → `xhigh` or `max`) and tighten the mission envelope (≤ 80 lines for `architect`) or freeze the contract (`builder`).
+When a primary model is unavailable (no Fable access on Claude, free-tier Grok account, exhausted weekly Carbon/Astra quota, or missing CLI), apply **effort compensation** on the fallback tier: raise effort (`high` → `xhigh` or `max`) and tighten the mission envelope (≤ 80 lines for `architect`) or freeze the contract (`builder`).
 
 | Mission Type | Mode | Primary Target | Fallback 1 *(No Fable / Free Grok safe)* | Fallback 2 *(Cross-pool / Paid `agy` bridge)* | Fallback 3 *(Intra-CLI / Lower tier + max effort)* |
 |---|---|---|---|---|---|
-| **Frontier arbitration / Deadlock (`architect` max)** | `read` | `claude:claude-fable-5-2:xhigh` *(non-ZDR, confirmed access)* | `codex:gpt-6.2-astra:medium` *or* `agy:gemini-4-argon-high` | `claude:opus:xhigh` *or* `agy:claude-opus-5-5-high` *(with `--check-models`)* | `codex:gpt-6.2-sol:max` *or* `agy:gemini-4-neon-xhigh` |
-| **Standard architectural second opinion (`architect`)** | `read` | Cross-family: `codex:gpt-6.2-astra:low` ↔ `agy:gemini-4-argon-medium` | `claude:opus:xhigh` | `agy:claude-opus-5-5-high` *(with `--check-models`)* | `codex:gpt-6.2-sol:xhigh` *or* `agy:gemini-4-neon-xhigh` |
+| **Frontier arbitration / Deadlock (`architect` max)** | `read` | `claude:claude-fable-5-2:xhigh` *(non-ZDR, confirmed access)* | `codex:gpt-6.2-astra:medium` *or* `agy:gemini-4-carbon-high` | `claude:opus:xhigh` *or* `agy:claude-opus-5-5-high` *(with `--check-models`)* | `codex:gpt-6.2-sol:max` *or* `agy:gemini-4-neon-xhigh` |
+| **Standard architectural second opinion (`architect`)** | `read` | Cross-family: `codex:gpt-6.2-astra:low` ↔ `agy:gemini-4-carbon-medium` | `claude:opus:xhigh` | `agy:claude-opus-5-5-high` *(with `--check-models`)* | `codex:gpt-6.2-sol:xhigh` *or* `agy:gemini-4-neon-xhigh` |
 | **Critical code/security review & anti-*Hiding Failures*** | `read` | `claude:opus:high` | `agy:claude-opus-5-5-high` *(with `--check-models`)* *or* `claude:sonnet:xhigh` | `agy:gemini-4-neon-high` | `codex:gpt-6.2-sol:xhigh` |
 | **Logical framing & decomposition (`strategist`)** | `read` | `codex:gpt-6.2-sol:medium` *(or `high`)* | `agy:gemini-4-neon-medium` *(preferred if > 250k tokens)* | `claude:sonnet:high` | `codex:gpt-6-luna:max` |
 | **Fast counter-opinion / Red-team (< 200k tokens)** | `read` | `grok:grok-4.7:medium` *(paid/API Grok only)* | `agy:gemini-4-hydrogen-high` | `codex:gpt-6-luna:xhigh` | `claude:sonnet:medium` |
@@ -78,5 +83,5 @@ python "<absolute script path>" claude mission.txt --mode read --model opus --ef
 
 Read the JSON output from `delegate_external.py`:
 - Use `response` only when `status` is `ok`.
-- If `fallback_used` is `true`, inspect `requested`, `attempts`, and the winning `provider`, `model`, and `effort`. **Always report the actual executed CLI/model/effort to the user** — never present a fallback response as coming from the initially requested model (such as Fable, Astra, Argon, or Grok).
+- If `fallback_used` is `true`, inspect `requested`, `attempts`, and the winning `provider`, `model`, and `effort`. **Always report the actual executed CLI/model/effort to the user** — never present a fallback response as coming from the initially requested model (such as Fable, Astra, Carbon, or Grok).
 - If all candidates fail or time out, report the failure and `attempts` diagnostics without silently inventing a result.
